@@ -21,6 +21,7 @@
 		88D91691216BAE03008A4C2A /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 88D9168B216BAE03008A4C2A /* FMDatabasePool.m */; };
 		88D91692216BAE03008A4C2A /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 88D9168C216BAE03008A4C2A /* FMResultSet.m */; };
 		88D91693216BAE03008A4C2A /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 88D9168D216BAE03008A4C2A /* Info.plist */; };
+		88FF8BAA216E4B1A0096803B /* NJF_DB.m in Sources */ = {isa = PBXBuildFile; fileRef = 88FF8BA9216E4B1A0096803B /* NJF_DB.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,8 @@
 		88D9168B216BAE03008A4C2A /* FMDatabasePool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabasePool.m; sourceTree = "<group>"; };
 		88D9168C216BAE03008A4C2A /* FMResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMResultSet.m; sourceTree = "<group>"; };
 		88D9168D216BAE03008A4C2A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		88FF8BA8216E4B1A0096803B /* NJF_DB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NJF_DB.h; sourceTree = "<group>"; };
+		88FF8BA9216E4B1A0096803B /* NJF_DB.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NJF_DB.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +127,8 @@
 				88D91650216BACE2008A4C2A /* AppDelegate.m */,
 				8838E8B9216E0687006CC5F1 /* RootViewController.h */,
 				8838E8BA216E0687006CC5F1 /* RootViewController.m */,
+				88FF8BA8216E4B1A0096803B /* NJF_DB.h */,
+				88FF8BA9216E4B1A0096803B /* NJF_DB.m */,
 				8838E8BB216E0687006CC5F1 /* RootViewController.xib */,
 				88D91658216BACE3008A4C2A /* Assets.xcassets */,
 				88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */,
@@ -232,6 +237,7 @@
 		88D91644216BACE2008A4C2A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				CLASSPREFIX = NJF_;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "jinfeng niu";
 				TargetAttributes = {
@@ -305,6 +311,7 @@
 				88D9165F216BACE3008A4C2A /* main.m in Sources */,
 				88D91690216BAE03008A4C2A /* FMDatabase.m in Sources */,
 				88D91691216BAE03008A4C2A /* FMDatabasePool.m in Sources */,
+				88FF8BAA216E4B1A0096803B /* NJF_DB.m in Sources */,
 				8838E8BC216E0687006CC5F1 /* RootViewController.m in Sources */,
 				88D91651216BACE2008A4C2A /* AppDelegate.m in Sources */,
 				88D91692216BAE03008A4C2A /* FMResultSet.m in Sources */,
