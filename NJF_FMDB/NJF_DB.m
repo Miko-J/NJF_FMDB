@@ -26,6 +26,12 @@
 static NJF_DB *njfDB = nil;
 @implementation NJF_DB
 
+- (instancetype)init{
+    if (self = [super init]) {
+        self.semaphore = dispatch_semaphore_create(1);
+    }
+    return self;
+}
 /**
  获取单例函数.
  */
@@ -48,5 +54,20 @@ static NJF_DB *njfDB = nil;
     NSString *filename = CachePath(name);
     _dbQueue = [FMDatabaseQueue databaseQueueWithPath:filename];
     return _dbQueue;
+}
+
+- (void)closeDB{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    if (_dbQueue) {
+        [_dbQueue close];
+        _dbQueue = nil;
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)saveArray:(NSArray *_Nonnull)array
+             name:(NSString *_Nonnull)name
+         complete:(njf_complete_B)complete{
+    
 }
 @end

@@ -9,8 +9,8 @@
 #ifndef NJF_DBConfig_h
 #define NJF_DBConfig_h
 
-#include <stdio.h>
-
 extern void njf_setSqliteName(NSString*_Nonnull sqliteName);
+
+#define njf_complete_B void(^_Nullable)(BOOL isSuccess)
 
 #endif /* NJF_DBConfig_h */

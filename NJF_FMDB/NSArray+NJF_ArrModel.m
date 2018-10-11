@@ -7,12 +7,18 @@
 //
 
 #import "NSArray+NJF_ArrModel.h"
-
+#import "NJF_DB.h"
 @implementation NSArray (NJF_ArrModel)
 
 - (BOOL)njf_saveArrWithName:(NSString * const _Nonnull)name{
     if ([self isKindOfClass:[NSArray class]]) {
-        return YES;
+        __block BOOL result;
+        [[NJF_DB shareManager] saveArray:self name:name complete:^(BOOL isSuccess) {
+            result = isSuccess;
+        }];
+        //关闭数据库
+        [[NJF_DB shareManager] closeDB];
+        return result;
     }else{
         return NO;
     }
