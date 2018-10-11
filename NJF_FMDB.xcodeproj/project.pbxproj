@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		8838E8BC216E0687006CC5F1 /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8BA216E0687006CC5F1 /* RootViewController.m */; };
 		8838E8BD216E0687006CC5F1 /* RootViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8838E8BB216E0687006CC5F1 /* RootViewController.xib */; };
+		8838E8C3216F2C04006CC5F1 /* NJF_DBTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */; };
+		8838E8C9216F4896006CC5F1 /* NSArray+NJF_ArrModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */; };
+		8838E8CC216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8CB216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m */; };
+		8838E8CF216F4900006CC5F1 /* NJF_People.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8CE216F4900006CC5F1 /* NJF_People.m */; };
 		88D91651216BACE2008A4C2A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 88D91650216BACE2008A4C2A /* AppDelegate.m */; };
 		88D91659216BACE3008A4C2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88D91658216BACE3008A4C2A /* Assets.xcassets */; };
 		88D9165C216BACE3008A4C2A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */; };
@@ -45,6 +49,15 @@
 		8838E8B9216E0687006CC5F1 /* RootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
 		8838E8BA216E0687006CC5F1 /* RootViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RootViewController.m; sourceTree = "<group>"; };
 		8838E8BB216E0687006CC5F1 /* RootViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RootViewController.xib; sourceTree = "<group>"; };
+		8838E8C1216F2C04006CC5F1 /* NJF_DBTool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NJF_DBTool.h; sourceTree = "<group>"; };
+		8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NJF_DBTool.m; sourceTree = "<group>"; };
+		8838E8C5216F2CF7006CC5F1 /* NJF_DBConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NJF_DBConfig.h; sourceTree = "<group>"; };
+		8838E8C7216F4896006CC5F1 /* NSArray+NJF_ArrModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSArray+NJF_ArrModel.h"; sourceTree = "<group>"; };
+		8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSArray+NJF_ArrModel.m"; sourceTree = "<group>"; };
+		8838E8CA216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+NJF_DicModel.h"; sourceTree = "<group>"; };
+		8838E8CB216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+NJF_DicModel.m"; sourceTree = "<group>"; };
+		8838E8CD216F4900006CC5F1 /* NJF_People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NJF_People.h; sourceTree = "<group>"; };
+		8838E8CE216F4900006CC5F1 /* NJF_People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NJF_People.m; sourceTree = "<group>"; };
 		88D9164C216BACE2008A4C2A /* NJF_FMDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NJF_FMDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88D9164F216BACE2008A4C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		88D91650216BACE2008A4C2A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -127,6 +140,13 @@
 				88D91650216BACE2008A4C2A /* AppDelegate.m */,
 				8838E8B9216E0687006CC5F1 /* RootViewController.h */,
 				8838E8BA216E0687006CC5F1 /* RootViewController.m */,
+				8838E8C5216F2CF7006CC5F1 /* NJF_DBConfig.h */,
+				8838E8C1216F2C04006CC5F1 /* NJF_DBTool.h */,
+				8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */,
+				8838E8C7216F4896006CC5F1 /* NSArray+NJF_ArrModel.h */,
+				8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */,
+				8838E8CA216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.h */,
+				8838E8CB216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m */,
 				88FF8BA8216E4B1A0096803B /* NJF_DB.h */,
 				88FF8BA9216E4B1A0096803B /* NJF_DB.m */,
 				8838E8BB216E0687006CC5F1 /* RootViewController.xib */,
@@ -134,6 +154,8 @@
 				88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */,
 				88D9165D216BACE3008A4C2A /* Info.plist */,
 				88D9165E216BACE3008A4C2A /* main.m */,
+				8838E8CD216F4900006CC5F1 /* NJF_People.h */,
+				8838E8CE216F4900006CC5F1 /* NJF_People.m */,
 			);
 			path = NJF_FMDB;
 			sourceTree = "<group>";
@@ -307,10 +329,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8838E8CF216F4900006CC5F1 /* NJF_People.m in Sources */,
 				88D9168E216BAE03008A4C2A /* FMDatabaseQueue.m in Sources */,
 				88D9165F216BACE3008A4C2A /* main.m in Sources */,
+				8838E8CC216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m in Sources */,
 				88D91690216BAE03008A4C2A /* FMDatabase.m in Sources */,
 				88D91691216BAE03008A4C2A /* FMDatabasePool.m in Sources */,
+				8838E8C3216F2C04006CC5F1 /* NJF_DBTool.m in Sources */,
+				8838E8C9216F4896006CC5F1 /* NSArray+NJF_ArrModel.m in Sources */,
 				88FF8BAA216E4B1A0096803B /* NJF_DB.m in Sources */,
 				8838E8BC216E0687006CC5F1 /* RootViewController.m in Sources */,
 				88D91651216BACE2008A4C2A /* AppDelegate.m in Sources */,
