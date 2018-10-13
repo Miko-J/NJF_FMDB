@@ -12,6 +12,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NJF_DBTool : NSObject
 
+/**
+ 判断并获取字段类型.
+ */
++ (NSString *)keyType:(NSString *)param;
+
 @end
 
 NS_ASSUME_NONNULL_END
