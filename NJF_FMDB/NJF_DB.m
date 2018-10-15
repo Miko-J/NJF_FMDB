@@ -23,6 +23,7 @@ static NSString *const njf_primaryKey = @"njf_id";
  */
 @property (nonatomic, strong) FMDatabaseQueue *dbQueue;
 @property (nonatomic, strong) FMDatabase *db;
+@property (nonatomic, assign) BOOL inTransation;//事物操作
 @end
 
 static NJF_DB *njfDB = nil;
@@ -103,6 +104,9 @@ static NJF_DB *njfDB = nil;
     }];
 }
 
+/**
+ 创建表
+ */
 - (void)creatTableWithTableName:(NSString *)name keys:(NSArray <NSString *> *_Nonnull)keys complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
     NSAssert(keys, @"字段数组不能为空");
@@ -130,6 +134,56 @@ static NJF_DB *njfDB = nil;
     if (complete) complete(result);
 }
 
+/**
+查询表中有多少数据
+ */
+- (NSUInteger)countQueueForTable:(NSString *_Nonnull)name{
+    NSAssert(name, @"表名不能为空");
+    __block NSInteger count = 0;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSString *sql = [NSString stringWithFormat:@"select count(*) from %@",name];
+        [db executeStatements:sql withResultBlock:^int(NSDictionary * _Nonnull resultsDictionary) {
+            count = [[resultsDictionary.allValues lastObject] integerValue];
+            return 0;
+        }];
+    }];
+    return count;
+}
+
+/**
+执行事务操作
+ */
+- (void)executeTransation:(BOOL(^_Nonnull)(void))block{
+    __weak typeof(self) weakSelf = self;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        strongSelf.inTransation = db.isInTransaction;
+        if (!strongSelf.inTransation) {
+            strongSelf.inTransation = [db beginTransaction];
+        }
+        BOOL isCommit = NO;
+        isCommit = block();
+        if (strongSelf.inTransation) {
+            if (isCommit) {
+                [db commit];
+            }else{
+                [db rollback];
+            }
+            strongSelf.inTransation = NO;
+        }
+    }];
+}
+
+/**
+ 插入数据
+ */
+- (void)insertIntoWithTableName:(NSString *_Nonnull)name dict:(NSDictionary *_Nonnull)dict complete:(njf_complete_B)complete{
+    
+}
+
+/**
+ 根据唯一标识保存数组
+ */
 - (void)saveArray:(NSArray *_Nonnull)array
              name:(NSString *_Nonnull)name
          complete:(njf_complete_B)complete{
@@ -140,9 +194,27 @@ static NJF_DB *njfDB = nil;
         __weak typeof(self) weakSelf = self;
         [self isExistWithTableName:name complete:^(BOOL isSuccess) {
             if (!isSuccess) {//创建表
-                [self creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] complete:nil];
+                [weakSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] complete:nil];
             }
         }];
+        //获取表中有多少数据
+        __block NSInteger sqlCount = [self countQueueForTable:name];
+        __block NSInteger num = 0;
+        [self executeTransation:^BOOL{
+            for (id value in array) {
+                NSString* type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([value class])];
+                id sqlValue = [NJF_DBTool getSqlValue:value type:type encode:YES];
+                NSDictionary* dict = @{@"njf_param":sqlValue,@"njf_index":@(sqlCount++)};
+                //插入数据
+                [self insertIntoWithTableName:name dict:dict complete:^(BOOL isSuccess) {
+                    if (isSuccess) {
+                        num ++;
+                    }
+                }];
+            }
+            return YES;
+        }];
+        if (complete) complete(array.count == num);
     }
     dispatch_semaphore_signal(self.semaphore);
 }

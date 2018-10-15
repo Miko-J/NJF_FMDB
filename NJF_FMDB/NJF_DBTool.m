@@ -13,6 +13,7 @@ static NSString *sqlText = @"text";         //数据库的字符类型
 static NSString *sqlReal = @"real";         //数据库的浮点类型
 static NSString *sqlInteger = @"integer";   //数据库的整数类型
 static NSString *njf = @"njf_";
+
 @implementation NJF_DBTool
 
 /**
@@ -58,4 +59,9 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
         return sqlText;
     }
 }
+
+//跟value和数据类型type 和编解码标志 返回编码插入数据库的值,或解码数据库的值.
+//+(id _Nonnull)getSqlValue:(id _Nonnull)value type:(NSString* _Nonnull)type encode:(BOOL)encode{
+//
+//}
 @end
