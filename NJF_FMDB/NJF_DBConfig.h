@@ -11,6 +11,7 @@
 
 extern void njf_setSqliteName(NSString*_Nonnull sqliteName);
 
+#define njf_primaryKey @"bg_id"
 #define njf_complete_B void(^_Nullable)(BOOL isSuccess)
 
 #endif /* NJF_DBConfig_h */

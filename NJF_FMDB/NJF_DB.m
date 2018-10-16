@@ -10,7 +10,6 @@
 #import "FMDB.h"
 #import "NJF_DBTool.h"
 
-static NSString *const njf_primaryKey = @"njf_id";
 /**
  默认数据库名称
  */
