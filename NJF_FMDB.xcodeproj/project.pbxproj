@@ -13,6 +13,7 @@
 		8838E8C9216F4896006CC5F1 /* NSArray+NJF_ArrModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */; };
 		8838E8CC216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8CB216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m */; };
 		8838E8CF216F4900006CC5F1 /* NJF_People.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8CE216F4900006CC5F1 /* NJF_People.m */; };
+		88ACB98C2176E2050065EDFA /* NSCache+NJF_Cache.m in Sources */ = {isa = PBXBuildFile; fileRef = 88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */; };
 		88D91651216BACE2008A4C2A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 88D91650216BACE2008A4C2A /* AppDelegate.m */; };
 		88D91659216BACE3008A4C2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88D91658216BACE3008A4C2A /* Assets.xcassets */; };
 		88D9165C216BACE3008A4C2A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */; };
@@ -58,6 +59,8 @@
 		8838E8CB216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+NJF_DicModel.m"; sourceTree = "<group>"; };
 		8838E8CD216F4900006CC5F1 /* NJF_People.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NJF_People.h; sourceTree = "<group>"; };
 		8838E8CE216F4900006CC5F1 /* NJF_People.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NJF_People.m; sourceTree = "<group>"; };
+		88ACB98A2176E2050065EDFA /* NSCache+NJF_Cache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSCache+NJF_Cache.h"; sourceTree = "<group>"; };
+		88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSCache+NJF_Cache.m"; sourceTree = "<group>"; };
 		88D9164C216BACE2008A4C2A /* NJF_FMDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NJF_FMDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88D9164F216BACE2008A4C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		88D91650216BACE2008A4C2A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -143,6 +146,8 @@
 				8838E8C5216F2CF7006CC5F1 /* NJF_DBConfig.h */,
 				8838E8C1216F2C04006CC5F1 /* NJF_DBTool.h */,
 				8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */,
+				88ACB98A2176E2050065EDFA /* NSCache+NJF_Cache.h */,
+				88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */,
 				8838E8C7216F4896006CC5F1 /* NSArray+NJF_ArrModel.h */,
 				8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */,
 				8838E8CA216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.h */,
@@ -336,6 +341,7 @@
 				88D91690216BAE03008A4C2A /* FMDatabase.m in Sources */,
 				88D91691216BAE03008A4C2A /* FMDatabasePool.m in Sources */,
 				8838E8C3216F2C04006CC5F1 /* NJF_DBTool.m in Sources */,
+				88ACB98C2176E2050065EDFA /* NSCache+NJF_Cache.m in Sources */,
 				8838E8C9216F4896006CC5F1 /* NSArray+NJF_ArrModel.m in Sources */,
 				88FF8BAA216E4B1A0096803B /* NJF_DB.m in Sources */,
 				8838E8BC216E0687006CC5F1 /* RootViewController.m in Sources */,

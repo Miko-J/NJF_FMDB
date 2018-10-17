@@ -8,11 +8,18 @@
 #import "NJF_DBTool.h"
 #import "NJF_DBConfig.h"
 #import "NJF_DB.h"
+#import "NSCache+NJF_Cache.h"
+#import <objc/runtime.h>
+#import <CoreData/CoreData.h>
 
 static NSString *sqlText = @"text";         //数据库的字符类型
 static NSString *sqlReal = @"real";         //数据库的浮点类型
 static NSString *sqlInteger = @"integer";   //数据库的整数类型
 static NSString *njf = @"njf_";
+static NSString *njf_tableNameKey = @"njf_tableName";
+static NSString *BG = @"BG_";
+static NSString *njf_createTimeKey = @"njf_createTime";
+static NSString *njf_updateTimeKey = @"njf_updateTime";
 
 static NSString *njfValue = @"BGValue";
 static NSString *njfData = @"BGData";
@@ -28,6 +35,14 @@ static NSString *njf_typeHead_UI = @"@\"UI";
 static NSString *njf_typeHead__UI = @"@\"__UI";
 //100M大小限制.
 #define MaxData @(838860800)
+
+/**
+ *  遍历所有类的block（父类）
+ */
+typedef void (^NJFClassesEnumeration)(Class c, BOOL *stop);
+static NSSet *foundationClasses_;
+
+#define bg_ignoreKeysSelector NSSelectorFromString(@"bg_ignoreKeys")
 
 @implementation NJF_DBTool
 
@@ -110,6 +125,183 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
     }
 }
 
+/**
+ 根据类获取变量名列表
+ @onlyKey YES:紧紧返回key,NO:在key后面添加type.
+ */
++(NSArray*)getClassIvarList:(__unsafe_unretained Class)cla Object:(_Nullable id)object onlyKey:(BOOL)onlyKey{
+    //获取缓存的属性信息
+    NSCache* cache = [NSCache njf_cache];
+    NSString* cacheKey;
+    cacheKey = onlyKey?[NSString stringWithFormat:@"%@_IvarList_yes",NSStringFromClass(cla)]:[NSString stringWithFormat:@"%@_IvarList_no",NSStringFromClass(cla)];
+    NSArray* cachekeys = [cache objectForKey:cacheKey];
+    if(cachekeys){
+        return cachekeys;
+    }
+    
+    NSMutableArray* keys = [NSMutableArray array];
+    if(onlyKey){
+        [keys addObject:njf_primaryKey];
+        [keys addObject:njf_createTimeKey];
+        [keys addObject:njf_updateTimeKey];
+    }else{
+        //手动添加库自带的自动增长主键ID和类型q
+        [keys addObject:[NSString stringWithFormat:@"%@*q",njf_primaryKey]];
+        //建表时此处加入额外的两个字段(createTime和updateTime).
+        [keys addObject:[NSString stringWithFormat:@"%@*@\"NSString\"",njf_createTimeKey]];
+        [keys addObject:[NSString stringWithFormat:@"%@*@\"NSString\"",njf_updateTimeKey]];
+    }
+    [self bg_enumerateClasses:cla complete:^(__unsafe_unretained Class c, BOOL *stop) {
+        unsigned int numIvars; //成员变量个数
+        Ivar *vars = class_copyIvarList(c, &numIvars);
+        for(int i = 0; i < numIvars; i++) {
+            Ivar thisIvar = vars[i];
+            NSString* key = [NSString stringWithUTF8String:ivar_getName(thisIvar)];//获取成员变量的名
+            if ([key hasPrefix:@"_"]) {
+                key = [key substringFromIndex:1];
+            }
+            if (!onlyKey) {
+                //获取成员变量的数据类型
+                NSString* type = [NSString stringWithUTF8String:ivar_getTypeEncoding(thisIvar)];
+                key = [NSString stringWithFormat:@"%@*%@",key,type];
+            }
+            [keys addObject:key];//存储对象的变量名
+        }
+        free(vars);//释放资源
+    }];
+    [cache setObject:keys forKey:cacheKey];
+    return keys;
+}
+
++ (void)bg_enumerateClasses:(__unsafe_unretained Class)srcCla complete:(NJFClassesEnumeration)enumeration
+{
+    // 1.没有block就直接返回
+    if (enumeration == nil) return;
+    // 2.停止遍历的标记
+    BOOL stop = NO;
+    // 3.当前正在遍历的类
+    Class c = srcCla;
+    // 4.开始遍历每一个类
+    while (c && !stop) {
+        // 4.1.执行操作
+        enumeration(c, &stop);
+        // 4.2.获得父类
+        c = class_getSuperclass(c);
+        if ([self isClassFromFoundation:c]) break;
+    }
+}
+
++ (BOOL)isClassFromFoundation:(Class)c
+{
+    if (c == [NSObject class] || c == [NSManagedObject class]) return YES;
+    __block BOOL result = NO;
+    [[self foundationClasses] enumerateObjectsUsingBlock:^(Class foundationClass, BOOL *stop) {
+        if ([c isSubclassOfClass:foundationClass]) {
+            result = YES;
+            *stop = YES;
+        }
+    }];
+    return result;
+}
+
++ (NSSet *)foundationClasses
+{
+    if (foundationClasses_ == nil) {
+        // 集合中没有NSObject，因为几乎所有的类都是继承自NSObject，具体是不是NSObject需要特殊判断
+        foundationClasses_ = [NSSet setWithObjects:
+                              [NSURL class],
+                              [NSDate class],
+                              [NSValue class],
+                              [NSData class],
+                              [NSError class],
+                              [NSArray class],
+                              [NSDictionary class],
+                              [NSString class],
+                              [NSAttributedString class], nil];
+    }
+    return foundationClasses_;
+}
+
+/**
+ 存储转换用的字典转化成对象处理函数.
+ */
++(id)objectFromJsonStringWithTableName:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla valueDict:(NSDictionary*)valueDict{
+    id object = [cla new];
+    NSMutableArray* valueDictKeys = [NSMutableArray arrayWithArray:valueDict.allKeys];
+    NSMutableArray* keyAndTypes = [NSMutableArray arrayWithArray:[self getClassIvarList:cla Object:nil onlyKey:NO]];
+    for(int i=0;i<valueDictKeys.count;i++){
+        NSString* sqlKey = valueDictKeys[i];
+        NSString* tempSqlKey = sqlKey;
+        if([sqlKey containsString:BG]){
+            tempSqlKey = [sqlKey stringByReplacingOccurrencesOfString:BG withString:@""];
+        }
+        for(NSString* keyAndType in keyAndTypes){
+            NSArray* arrKT = [keyAndType componentsSeparatedByString:@"*"];
+            NSString* key = [arrKT firstObject];
+            NSString* type = [arrKT lastObject];
+            
+            if ([tempSqlKey isEqualToString:key]){
+                id tempValue = valueDict[sqlKey];
+                id ivarValue = [self getSqlValue:tempValue type:type encode:NO];
+                !ivarValue?:[object setValue:ivarValue forKey:key];
+                [keyAndTypes removeObject:keyAndType];
+                [valueDictKeys removeObjectAtIndex:i];
+                i--;
+                break;//匹配处理完后跳出内循环.
+            }
+        }
+    }
+    [object setValue:tablename forKey:njf_tableNameKey];
+    return object;
+}
+
+//根据NSDictionary转换从数据库读取回来的数组数据
++(id)valueForArrayRead:(NSDictionary*)dictionary{
+    NSString* key = dictionary.allKeys.firstObject;
+    if ([key isEqualToString:njfValue]) {
+        return dictionary[key];
+    }else if ([key isEqualToString:njfData]){
+        return [[NSData alloc] initWithBase64EncodedString:dictionary[key] options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    }else if([key isEqualToString:njfSet]){
+        return [self arrayFromJsonString:dictionary[key]];
+    }else if([key isEqualToString:njfArray]){
+        return [self arrayFromJsonString:dictionary[key]];
+    }else if ([key isEqualToString:njfDictionary]){
+        return [self dictionaryFromJsonString:dictionary[key]];
+    }else if ([key containsString:njfModel]){
+        NSString* claName = [key componentsSeparatedByString:@"*"].lastObject;
+        NSDictionary* valueDict = [self jsonWtihString:dictionary[key]];
+        id object = [self objectFromJsonStringWithTableName:claName class:NSClassFromString(claName) valueDict:valueDict];
+        return object;
+    }else{
+        NSAssert(NO,@"没有找到匹配的解析类型");
+        return nil;
+    }
+}
+
+//根据NSDictionary转换从数据库读取回来的字典数据
++(id)valueForDictionaryRead:(NSDictionary*)dictDest{
+    NSString* keyDest = dictDest.allKeys.firstObject;
+    if([keyDest isEqualToString:njfValue]){
+        return dictDest[keyDest];
+    }else if ([keyDest isEqualToString:njfData]){
+        return [[NSData alloc] initWithBase64EncodedString:dictDest[keyDest] options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    }else if([keyDest isEqualToString:njfSet]){
+        return [self arrayFromJsonString:dictDest[keyDest]];
+    }else if([keyDest isEqualToString:njfArray]){
+        return [self arrayFromJsonString:dictDest[keyDest]];
+    }else if([keyDest isEqualToString:njfDictionary]){
+        return [self dictionaryFromJsonString:dictDest[keyDest]];
+    }else if([keyDest containsString:njfModel]){
+        NSString* claName = [keyDest componentsSeparatedByString:@"*"].lastObject;
+        NSDictionary* valueDict = [self jsonWtihString:dictDest[keyDest]];
+        return [self objectFromJsonStringWithTableName:claName class:NSClassFromString(claName) valueDict:valueDict];
+    }else{
+        NSAssert(NO,@"没有找到匹配的解析类型");
+        return nil;
+    }
+}
+
 //NSArray,NSSet转json字符
 + (NSString *)jsonStringWithArr:(id)arr{
     if ([NSJSONSerialization isValidJSONObject:arr]) {
@@ -159,19 +351,77 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
     return  [self dataToJson:arrM];
 }
 
+/**
+ json字符转json格式数据 .
+ */
++ (id)jsonWtihString:(NSString *)jsonString{
+    NSAssert(jsonString,@"数据不能为空!");
+    NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *err;
+    id dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                             options:NSJSONReadingMutableContainers
+                                               error:&err];
+    
+    NSAssert(!err,@"json解析失败");
+    return dic;
+}
+
++ (NSArray *)arrayFromJsonString:(NSString *)jsonString{
+    if (!jsonString || [jsonString isKindOfClass:[NSNull class]]) return nil;
+    if ([jsonString containsString:njfModel] || [jsonString containsString:njfData]) {
+        NSMutableArray *arrM = [NSMutableArray array];
+        NSArray *arr = [self jsonWtihString:jsonString];
+        for (NSDictionary *dict in arr) {
+            [arrM addObject:[self valueForArrayRead:dict]];
+        }
+        return arrM;
+    }else{
+        return [self jsonWtihString:jsonString];
+    }
+}
+
+//json字符串转NSDictionary
++(NSDictionary*)dictionaryFromJsonString:(NSString*)jsonString{
+    if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
+    
+    if([jsonString containsString:njfModel] || [jsonString containsString:njfData]){
+        NSMutableDictionary* dictM = [NSMutableDictionary dictionary];
+        NSDictionary* dictSrc = [self jsonWtihString:jsonString];
+        for(NSString* keySrc in dictSrc.allKeys){
+            NSDictionary* dictDest = dictSrc[keySrc];
+            dictM[keySrc]= [self valueForDictionaryRead:dictDest];
+        }
+        return dictM;
+    }else{
+        return [self jsonWtihString:jsonString];
+    }
+}
+
+/**
+ 判断类是否实现了某个类方法.
+ */
++(id)executeSelector:(SEL)selector forClass:(Class)cla{
+    id obj = nil;
+    if([cla respondsToSelector:selector]){
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        obj = [cla performSelector:selector];
+#pragma clang diagnostic pop
+    }
+    return obj;
+}
+
 //对象转json字符
 +(NSString *)jsonStringWithObject:(id)object{
     NSMutableDictionary* keyValueDict = [NSMutableDictionary dictionary];
-    NSArray* keyAndTypes = [BGTool getClassIvarList:[object class] Object:object onlyKey:NO];
+    NSArray* keyAndTypes = [self getClassIvarList:[object class] Object:object onlyKey:NO];
     //忽略属性
-    NSArray* ignoreKeys = [BGTool executeSelector:bg_ignoreKeysSelector forClass:[object class]];
+    NSArray* ignoreKeys = [self executeSelector:bg_ignoreKeysSelector forClass:[object class]];
     for(NSString* keyAndType in keyAndTypes){
         NSArray* arr = [keyAndType componentsSeparatedByString:@"*"];
         NSString* propertyName = arr[0];
         NSString* propertyType = arr[1];
-        
         if([ignoreKeys containsObject:propertyName])continue;
-        
         if(![propertyName isEqualToString:njf_primaryKey]){
             id propertyValue = [object valueForKey:propertyName];
             if (propertyValue){
@@ -263,7 +513,7 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
         }else{
             return [UIImage imageWithData:[[NSData alloc] initWithBase64EncodedString:value options:NSDataBase64DecodingIgnoreUnknownCharacters]];
         }
-    }else if(([type hasPrefix:bg_typeHead_UI]||[type hasPrefix:bg_typeHead__UI])&&[type containsString:@"Color"]){
+    }else if(([type hasPrefix:njf_typeHead_UI]||[type hasPrefix:njf_typeHead__UI])&&[type containsString:@"Color"]){
         if(encode){
             CGFloat r, g, b, a;
             [value getRed:&r green:&g blue:&b alpha:&a];
