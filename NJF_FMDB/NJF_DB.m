@@ -23,6 +23,12 @@
 @property (nonatomic, strong) FMDatabaseQueue *dbQueue;
 @property (nonatomic, strong) FMDatabase *db;
 @property (nonatomic, assign) BOOL inTransation;//事物操作
+
+/**
+ 记录注册监听数据变化的block.
+ */
+@property (nonatomic,strong) NSMutableDictionary* changeBlocks;
+
 @end
 
 static NJF_DB *njfDB = nil;
@@ -43,6 +49,17 @@ static NJF_DB *njfDB = nil;
         njfDB = [[NJF_DB alloc] init];
     });
     return njfDB;
+}
+
+-(NSMutableDictionary *)changeBlocks{
+    if (_changeBlocks == nil) {
+        @synchronized(self){
+            if(_changeBlocks == nil){
+                _changeBlocks = [NSMutableDictionary dictionary];
+            }
+        }
+    }
+    return _changeBlocks;
 }
 
 /**
@@ -173,11 +190,76 @@ static NJF_DB *njfDB = nil;
     }];
 }
 
+//查询表中有多少数据
+-(NSInteger)getKeyMaxForTable:(NSString*)name key:(NSString*)key db:(FMDatabase*)db{
+    __block NSInteger num = 0;
+    [db executeStatements:[NSString stringWithFormat:@"select max(%@) from %@",key,name] withResultBlock:^int(NSDictionary *resultsDictionary){
+        id dbResult = [resultsDictionary.allValues lastObject];
+        if(dbResult && ![dbResult isKindOfClass:[NSNull class]]) {
+            num = [dbResult integerValue];
+        }
+        return 0;
+    }];
+    return num;
+}
+
+-(void)doChangeWithName:(NSString* const _Nonnull)name flag:(BOOL)flag state:(njf_changeState)state{
+    if(flag && self.changeBlocks.count>0){
+        //开一个子线程去执行block,防止死锁.
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH,0), ^{
+            [self.changeBlocks enumerateKeysAndObjectsUsingBlock:^(NSString*  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop){
+                NSString* tablename = [key componentsSeparatedByString:@"*"].firstObject;
+                if([name isEqualToString:tablename]){
+                    void(^block)(njf_changeState) = obj;
+                    //返回主线程回调.
+                    dispatch_sync(dispatch_get_main_queue(), ^{
+                        block(state);
+                    });
+                }
+            }];
+        });
+    }
+}
+
 /**
  插入数据
  */
 - (void)insertIntoWithTableName:(NSString *_Nonnull)name dict:(NSDictionary *_Nonnull)dict complete:(njf_complete_B)complete{
-    
+    NSAssert(name, @"表名不能为空");
+    NSAssert(dict, @"插入的字典不能为空");
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSArray *keys = dict.allKeys;
+        //主健自增
+        if ([keys containsObject:njf_sqlKey(njf_primaryKey)]) {
+            NSInteger num = [self getKeyMaxForTable:name key:njf_sqlKey(njf_primaryKey) db:db];
+            [dict setValue:@(num+1) forKey:njf_sqlKey(njf_primaryKey)];
+        }
+        NSArray* values = dict.allValues;
+        NSMutableString* SQL = [[NSMutableString alloc] init];
+        [SQL appendFormat:@"insert into %@(",name];
+        for(int i=0;i<keys.count;i++){
+            [SQL appendFormat:@"%@",keys[i]];
+            if(i == (keys.count-1)){
+                [SQL appendString:@") "];
+            }else{
+                [SQL appendString:@","];
+            }
+        }
+        [SQL appendString:@"values("];
+        for(int i=0;i<values.count;i++){
+            [SQL appendString:@"?"];
+            if(i == (keys.count-1)){
+                [SQL appendString:@");"];
+            }else{
+                [SQL appendString:@","];
+            }
+        }
+        result = [db executeUpdate:SQL withArgumentsInArray:values];
+    }];
+    //数据监听执行函数
+    [self doChangeWithName:name flag:result state:njf_insert];
+    if (complete) complete(result);
 }
 
 /**

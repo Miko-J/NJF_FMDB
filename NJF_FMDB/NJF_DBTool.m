@@ -56,6 +56,13 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
     }
 }
 
+/**
+ 封装处理传入数据库的key和value.
+ */
+NSString* njf_sqlKey(NSString* key){
+    return [NSString stringWithFormat:@"%@%@",BG,key];
+}
+
 + (NSString *)keyType:(NSString *)param{
     NSArray* array = [param componentsSeparatedByString:@"*"];
     NSString* key = array[0];
