@@ -5,6 +5,7 @@
 //  Created by niujf on 2018/10/11.
 //  Copyright © 2018年 jinfeng niu. All rights reserved.
 //
+#import <UIKit/UIKit.h>
 #import "NJF_DBTool.h"
 #import "NJF_DBConfig.h"
 #import "NJF_DB.h"
@@ -397,6 +398,46 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
     }
 }
 
+//json字符串转NSMapTable
++(NSMapTable*)mapTableFromJsonString:(NSString*)jsonString{
+    if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
+    NSDictionary* dict = [self jsonWtihString:jsonString];
+    NSMapTable* mapTable = [NSMapTable new];
+    for(NSString* key in dict.allKeys){
+        id value = [self valueForDictionaryRead:dict[key]];
+        [mapTable setObject:value forKey:key];
+    }
+    return mapTable;
+}
+
+//json字符串转NSHashTable
++(NSHashTable*)hashTableFromJsonString:(NSString*)jsonString{
+    if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
+    NSArray* arr = [self jsonWtihString:jsonString];
+    NSHashTable* hashTable = [NSHashTable new];
+    for (id obj in arr) {
+        id value = [self valueForArrayRead:obj];
+        [hashTable addObject:value];
+    }
+    return hashTable;
+}
+
+//json字符串转NSDate
++(NSDate*)dateFromString:(NSString*)jsonString{
+    if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
+    NSDateFormatter *formatter = [NSDateFormatter new];
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+    NSDate *date = [formatter dateFromString:jsonString];
+    return date;
+}
+
+//NSDate转字符串,格式: yyyy-MM-dd HH:mm:ss
++(NSString*)stringWithDate:(NSDate*)date{
+    NSDateFormatter* formatter = [NSDateFormatter new];
+    formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
+    return [formatter stringFromDate:date];
+}
+
 /**
  判断类是否实现了某个类方法.
  */
@@ -506,7 +547,7 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
         }
     }else if(([type hasPrefix:njf_typeHead_UI]||[type hasPrefix:njf_typeHead__UI])&&[type containsString:@"Image"]){
         if(encode){
-            NSData* data = UIImageJPEGRepresentation(value, 1);
+            NSData *data = UIImageJPEGRepresentation(value, 1.0);
             NSNumber* maxLength = MaxData;
             NSAssert(data.length<maxLength.integerValue,@"最大存储限制为100M");
             return [data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
@@ -561,12 +602,12 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
         if(encode){
             NSBundle *bundle = [NSBundle bundleForClass:[value class]];
             if(bundle == [NSBundle mainBundle]){//自定义的类
-                return [self jsonStringWithArray:@[value]];
+                return [self jsonStringWithArr:@[value]];
             }else{//特殊类型
                 return [[NSKeyedArchiver archivedDataWithRootObject:value] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
             }
         }else{
-            if([value containsString:BGModel]){//自定义的类
+            if([value containsString:njfModel]){//自定义的类
                 return [self arrayFromJsonString:value].firstObject;
             }else{//特殊类型
                 NSData* data = [[NSData alloc] initWithBase64EncodedString:value options:NSDataBase64DecodingIgnoreUnknownCharacters];
