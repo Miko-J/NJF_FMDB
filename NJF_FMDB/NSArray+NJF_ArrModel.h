@@ -17,6 +17,14 @@ NS_ASSUME_NONNULL_BEGIN
  **/
 - (BOOL)njf_saveArrWithName:(NSString * const _Nonnull)name;
 
+
+/**
+ 根据表名获取数组存储的元素
+
+ @param name 表名
+ @return 返回一个数组
+ */
+- (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name;
 @end
 
 NS_ASSUME_NONNULL_END

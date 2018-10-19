@@ -24,4 +24,15 @@
     }
 }
 
+- (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name{
+    __block NSMutableArray *arr;
+    [[NJF_DB shareManager] querryArrayWithName:name complete:^(NSArray * _Nullable array) {
+        if (array && array.count > 0) {
+            arr = [NSMutableArray arrayWithArray:array];
+        }
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return arr;
+}
 @end

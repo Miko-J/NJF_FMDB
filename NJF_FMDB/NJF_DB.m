@@ -299,4 +299,53 @@ static NJF_DB *njfDB = nil;
     }
     dispatch_semaphore_signal(self.semaphore);
 }
+
+- (void)querryArrayWithName:(NSString *_Nonnull)name
+                   complete:(njf_complete_A)complete{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        NSString* condition = [NSString stringWithFormat:@"order by %@ asc",njf_sqlKey(njf_primaryKey)];
+        [self queryQueueWithTableName:name conditions:condition complete:^(NSArray * _Nullable array) {
+            NSMutableArray* resultM = nil;
+            if(array&&array.count){
+                resultM = [NSMutableArray array];
+                for(NSDictionary* dict in array){
+                    NSArray* keyAndTypes = [dict[@"BG_param"] componentsSeparatedByString:@"$$$"];
+                    id value = [keyAndTypes firstObject];
+                    NSString* type = [keyAndTypes lastObject];
+                    value = [NJF_DBTool getSqlValue:value type:type encode:NO];
+                    [resultM addObject:value];
+                }
+            }
+            if (complete) complete(resultM);
+        }];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+-(void)queryQueueWithTableName:(NSString* _Nonnull)name conditions:(NSString* _Nullable)conditions complete:(njf_complete_A)complete{
+    NSAssert(name,@"表名不能为空!");
+    __block NSMutableArray* arrM = nil;
+    [self executeDB:^(FMDatabase * _Nonnull db){
+        NSString* SQL = conditions?[NSString stringWithFormat:@"select * from %@ %@",name,conditions]:[NSString stringWithFormat:@"select * from %@",name];
+        // 1.查询数据
+        FMResultSet *rs = [db executeQuery:SQL];
+        if (rs == nil) {
+           NSLog(@"查询错误,可能是'类变量名'发生了改变或'字段','表格'不存在!,请存储后再读取!");
+        }else{
+            arrM = [[NSMutableArray alloc] init];
+        }
+        // 2.遍历结果集
+        while (rs.next) {
+            NSMutableDictionary* dictM = [[NSMutableDictionary alloc] init];
+            for (int i=0;i<[[[rs columnNameToIndexMap] allKeys] count];i++) {
+                dictM[[rs columnNameForIndex:i]] = [rs objectForColumnIndex:i];
+            }
+            [arrM addObject:dictM];
+        }
+        //查询完后要关闭rs，不然会报@"Warning: there is at least one open result set around after performing
+        [rs close];
+    }];
+    if (complete) complete(arrM);
+}
 @end

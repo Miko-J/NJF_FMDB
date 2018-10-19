@@ -28,7 +28,16 @@
  */
 - (void)closeDB;
 /**************************数组操作*********************/
+/**
+  直接存储数组
+ */
 - (void)saveArray:(NSArray *_Nonnull)array
              name:(NSString *_Nonnull)name
          complete:(njf_complete_B)complete;
+
+/**
+ 读取数组
+ */
+- (void)querryArrayWithName:(NSString *_Nonnull)name
+                   complete:(njf_complete_A)complete;
 @end

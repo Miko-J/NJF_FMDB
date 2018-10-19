@@ -11,7 +11,7 @@
 
 #define njf_primaryKey @"njf_id"
 #define njf_complete_B void(^_Nullable)(BOOL isSuccess)
-
+#define njf_complete_A void(^_Nullable)(NSArray *_Nullable array)
 extern void njf_setSqliteName(NSString*_Nonnull sqliteName);
 
 /**

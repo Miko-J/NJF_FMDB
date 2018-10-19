@@ -7,6 +7,8 @@
 //
 
 #import "RootViewController.h"
+#import "NJF_People.h"
+#import "NSArray+NJF_ArrModel.h"
 
 @interface RootViewController ()
 - (IBAction)creatDB:(id)sender;
@@ -22,6 +24,20 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    //存储数组
+    NSArray *arr = @[@"哈哈",@"9537",@"3.5"];
+    NSMutableArray *arrM = [NSMutableArray arrayWithArray:arr];
+    NJF_People *people = [[NJF_People alloc] init];
+    people.name = @"小明";
+    people.age = @(25);
+    people.height = 178.86;
+    [arrM addObject:people];
+    
+    [arrM njf_saveArrWithName:@"niujinfeng"];
+    
+    NSArray *array = [arrM njf_arrayWithName:@"niujinfeng"];
+    NSLog(@"%@",array);
 }
 
 //创建数据库
