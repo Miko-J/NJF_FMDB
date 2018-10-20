@@ -33,7 +33,6 @@
 //    people.age = @(25);
 //    people.height = 178.86;
 //    [arrM addObject:people];
-//
 //    [arrM njf_saveArrWithName:@"niujinfeng"];
     
     NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];

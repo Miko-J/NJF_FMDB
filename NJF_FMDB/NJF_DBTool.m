@@ -21,14 +21,14 @@ static NSString *njf_tableNameKey = @"njf_tableName";
 static NSString *njf_createTimeKey = @"njf_createTime";
 static NSString *njf_updateTimeKey = @"njf_updateTime";
 
-static NSString *njfValue = @"njfValue";
-static NSString *njfData = @"njfData";
-static NSString *njfArray = @"njfArray";
-static NSString *njfSet = @"njfSet";
-static NSString *njfDictionary = @"njfDictionary";
-static NSString *njfModel = @"njfModel";
-static NSString *njfMapTable = @"njfMapTable";
-static NSString *njfHashTable = @"njfHashTable";
+static NSString *NJFValue = @"NJFValue";
+static NSString *NJFData = @"NJFData";
+static NSString *NJFArray = @"NJFArray";
+static NSString *NJFSet = @"NJFSet";
+static NSString *NJFDictionary = @"NJFDictionary";
+static NSString *NJFModel = @"NJFModel";
+static NSString *NJFMapTable = @"NJFMapTable";
+static NSString *NJFHashTable = @"NJFHashTable";
 static NSString *njf_typeHead_NS = @"@\"NS";
 static NSString *njf_typeHead__NS = @"@\"__NS";
 static NSString *njf_typeHead_UI = @"@\"UI";
@@ -110,24 +110,24 @@ NSString* njf_sqlKey(NSString* key){
 //根据value类型返回用于数组插入数据库的NSDictionary
 + (NSDictionary *)dictionaryForArrInsert:(id)value{
     if ([value isKindOfClass:[NSArray class]]){
-        return @{njfArray:[self jsonStringWithArr:value]};
+        return @{NJFArray:[self jsonStringWithArr:value]};
     }else if ([value isKindOfClass:[NSSet class]]){
-        return @{njfSet:[self jsonStringWithArr:value]};
+        return @{NJFSet:[self jsonStringWithArr:value]};
     }else if ([value isKindOfClass:[NSString class]] || [value isKindOfClass:[NSNumber class]]){
-        return @{njfValue:value};
+        return @{NJFValue:value};
     }else if([value isKindOfClass:[NSData class]]){
         NSData* data = value;
         NSNumber* maxLength = MaxData;
         NSAssert(data.length<maxLength.integerValue,@"最大存储限制为100M");
-        return @{njfData:[value base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]};
+        return @{NJFData:[value base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]};
     }else if ([value isKindOfClass:[NSDictionary class]]){
-        return @{njfDictionary:[self jsonStringWithDict:value]};
+        return @{NJFDictionary:[self jsonStringWithDict:value]};
     }else if ([value isKindOfClass:[NSMapTable class]]){
-        return @{njfMapTable:[self jsonStringWithMapTable:value]};
+        return @{NJFMapTable:[self jsonStringWithMapTable:value]};
     }else if([value isKindOfClass:[NSHashTable class]]){
-        return @{njfHashTable:[self jsonStringWithNSHashTable:value]};
+        return @{NJFHashTable:[self jsonStringWithNSHashTable:value]};
     }else{
-        NSString* modelKey = [NSString stringWithFormat:@"%@*%@",njfModel,NSStringFromClass([value class])];
+        NSString* modelKey = [NSString stringWithFormat:@"%@*%@",NJFModel,NSStringFromClass([value class])];
         return @{modelKey:[self jsonStringWithObject:value]};
     }
 }
@@ -264,17 +264,17 @@ NSString* njf_sqlKey(NSString* key){
 //根据NSDictionary转换从数据库读取回来的数组数据
 +(id)valueForArrayRead:(NSDictionary*)dictionary{
     NSString* key = dictionary.allKeys.firstObject;
-    if ([key isEqualToString:njfValue]) {
+    if ([key isEqualToString:NJFValue]) {
         return dictionary[key];
-    }else if ([key isEqualToString:njfData]){
+    }else if ([key isEqualToString:NJFData]){
         return [[NSData alloc] initWithBase64EncodedString:dictionary[key] options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    }else if([key isEqualToString:njfSet]){
+    }else if([key isEqualToString:NJFSet]){
         return [self arrayFromJsonString:dictionary[key]];
-    }else if([key isEqualToString:njfArray]){
+    }else if([key isEqualToString:NJFArray]){
         return [self arrayFromJsonString:dictionary[key]];
-    }else if ([key isEqualToString:njfDictionary]){
+    }else if ([key isEqualToString:NJFDictionary]){
         return [self dictionaryFromJsonString:dictionary[key]];
-    }else if ([key containsString:njfModel]){
+    }else if ([key containsString:NJFModel]){
         NSString* claName = [key componentsSeparatedByString:@"*"].lastObject;
         NSDictionary* valueDict = [self jsonWtihString:dictionary[key]];
         id object = [self objectFromJsonStringWithTableName:claName class:NSClassFromString(claName) valueDict:valueDict];
@@ -288,17 +288,17 @@ NSString* njf_sqlKey(NSString* key){
 //根据NSDictionary转换从数据库读取回来的字典数据
 +(id)valueForDictionaryRead:(NSDictionary*)dictDest{
     NSString* keyDest = dictDest.allKeys.firstObject;
-    if([keyDest isEqualToString:njfValue]){
+    if([keyDest isEqualToString:NJFValue]){
         return dictDest[keyDest];
-    }else if ([keyDest isEqualToString:njfData]){
+    }else if ([keyDest isEqualToString:NJFData]){
         return [[NSData alloc] initWithBase64EncodedString:dictDest[keyDest] options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    }else if([keyDest isEqualToString:njfSet]){
+    }else if([keyDest isEqualToString:NJFSet]){
         return [self arrayFromJsonString:dictDest[keyDest]];
-    }else if([keyDest isEqualToString:njfArray]){
+    }else if([keyDest isEqualToString:NJFArray]){
         return [self arrayFromJsonString:dictDest[keyDest]];
-    }else if([keyDest isEqualToString:njfDictionary]){
+    }else if([keyDest isEqualToString:NJFDictionary]){
         return [self dictionaryFromJsonString:dictDest[keyDest]];
-    }else if([keyDest containsString:njfModel]){
+    }else if([keyDest containsString:NJFModel]){
         NSString* claName = [keyDest componentsSeparatedByString:@"*"].lastObject;
         NSDictionary* valueDict = [self jsonWtihString:dictDest[keyDest]];
         return [self objectFromJsonStringWithTableName:claName class:NSClassFromString(claName) valueDict:valueDict];
@@ -374,7 +374,7 @@ NSString* njf_sqlKey(NSString* key){
 
 + (NSArray *)arrayFromJsonString:(NSString *)jsonString{
     if (!jsonString || [jsonString isKindOfClass:[NSNull class]]) return nil;
-    if ([jsonString containsString:njfModel] || [jsonString containsString:njfData]) {
+    if ([jsonString containsString:NJFModel] || [jsonString containsString:NJFData]) {
         NSMutableArray *arrM = [NSMutableArray array];
         NSArray *arr = [self jsonWtihString:jsonString];
         for (NSDictionary *dict in arr) {
@@ -390,7 +390,7 @@ NSString* njf_sqlKey(NSString* key){
 +(NSDictionary*)dictionaryFromJsonString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
     
-    if([jsonString containsString:njfModel] || [jsonString containsString:njfData]){
+    if([jsonString containsString:NJFModel] || [jsonString containsString:NJFData]){
         NSMutableDictionary* dictM = [NSMutableDictionary dictionary];
         NSDictionary* dictSrc = [self jsonWtihString:jsonString];
         for(NSString* keySrc in dictSrc.allKeys){
@@ -612,7 +612,7 @@ NSString* njf_sqlKey(NSString* key){
                 return [[NSKeyedArchiver archivedDataWithRootObject:value] base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
             }
         }else{
-            if([value containsString:njfModel]){//自定义的类
+            if([value containsString:NJFModel]){//自定义的类
                 return [self arrayFromJsonString:value].firstObject;
             }else{//特殊类型
                 NSData* data = [[NSData alloc] initWithBase64EncodedString:value options:NSDataBase64DecodingIgnoreUnknownCharacters];
