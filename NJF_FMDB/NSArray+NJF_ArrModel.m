@@ -24,7 +24,7 @@
     }
 }
 
-- (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name{
++ (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name{
     __block NSMutableArray *arr;
     [[NJF_DB shareManager] querryArrayWithName:name complete:^(NSArray * _Nullable array) {
         if (array && array.count > 0) {

@@ -16,20 +16,19 @@
 static NSString *sqlText = @"text";         //数据库的字符类型
 static NSString *sqlReal = @"real";         //数据库的浮点类型
 static NSString *sqlInteger = @"integer";   //数据库的整数类型
-static NSString *njf = @"njf_";
+static NSString *NJF = @"NJF_";
 static NSString *njf_tableNameKey = @"njf_tableName";
-static NSString *BG = @"BG_";
 static NSString *njf_createTimeKey = @"njf_createTime";
 static NSString *njf_updateTimeKey = @"njf_updateTime";
 
-static NSString *njfValue = @"BGValue";
-static NSString *njfData = @"BGData";
-static NSString *njfArray = @"BGArray";
-static NSString *njfSet = @"BGSet";
-static NSString *njfDictionary = @"BGDictionary";
-static NSString *njfModel = @"BGModel";
-static NSString *njfMapTable = @"BGMapTable";
-static NSString *njfHashTable = @"BGHashTable";
+static NSString *njfValue = @"njfValue";
+static NSString *njfData = @"njfData";
+static NSString *njfArray = @"njfArray";
+static NSString *njfSet = @"njfSet";
+static NSString *njfDictionary = @"njfDictionary";
+static NSString *njfModel = @"njfModel";
+static NSString *njfMapTable = @"njfMapTable";
+static NSString *njfHashTable = @"njfHashTable";
 static NSString *njf_typeHead_NS = @"@\"NS";
 static NSString *njf_typeHead__NS = @"@\"__NS";
 static NSString *njf_typeHead_UI = @"@\"UI";
@@ -43,7 +42,7 @@ static NSString *njf_typeHead__UI = @"@\"__UI";
 typedef void (^NJFClassesEnumeration)(Class c, BOOL *stop);
 static NSSet *foundationClasses_;
 
-#define bg_ignoreKeysSelector NSSelectorFromString(@"bg_ignoreKeys")
+#define njf_ignoreKeysSelector NSSelectorFromString(@"njf_ignoreKeys")
 
 @implementation NJF_DBTool
 
@@ -60,7 +59,7 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
  封装处理传入数据库的key和value.
  */
 NSString* njf_sqlKey(NSString* key){
-    return [NSString stringWithFormat:@"%@%@",BG,key];
+    return [NSString stringWithFormat:@"%@%@",NJF,key];
 }
 
 + (NSString *)keyType:(NSString *)param{
@@ -79,7 +78,7 @@ NSString* njf_sqlKey(NSString* key){
         NSAssert(NO,@"没有找到匹配的类型!");
     }
     //设置列名(njf_ + 属性名),加njf_是为了防止和数据库关键字发生冲突.
-    return [NSString stringWithFormat:@"%@ %@",[NSString stringWithFormat:@"%@%@",njf,key],sqlType];
+    return [NSString stringWithFormat:@"%@ %@",[NSString stringWithFormat:@"%@%@",NJF,key],sqlType];
 }
 
 +(NSString*)getSqlType:(NSString*)type{
@@ -159,7 +158,7 @@ NSString* njf_sqlKey(NSString* key){
         [keys addObject:[NSString stringWithFormat:@"%@*@\"NSString\"",njf_createTimeKey]];
         [keys addObject:[NSString stringWithFormat:@"%@*@\"NSString\"",njf_updateTimeKey]];
     }
-    [self bg_enumerateClasses:cla complete:^(__unsafe_unretained Class c, BOOL *stop) {
+    [self njf_enumerateClasses:cla complete:^(__unsafe_unretained Class c, BOOL *stop) {
         unsigned int numIvars; //成员变量个数
         Ivar *vars = class_copyIvarList(c, &numIvars);
         for(int i = 0; i < numIvars; i++) {
@@ -181,7 +180,7 @@ NSString* njf_sqlKey(NSString* key){
     return keys;
 }
 
-+ (void)bg_enumerateClasses:(__unsafe_unretained Class)srcCla complete:(NJFClassesEnumeration)enumeration
++ (void)njf_enumerateClasses:(__unsafe_unretained Class)srcCla complete:(NJFClassesEnumeration)enumeration
 {
     // 1.没有block就直接返回
     if (enumeration == nil) return;
@@ -240,14 +239,13 @@ NSString* njf_sqlKey(NSString* key){
     for(int i=0;i<valueDictKeys.count;i++){
         NSString* sqlKey = valueDictKeys[i];
         NSString* tempSqlKey = sqlKey;
-        if([sqlKey containsString:BG]){
-            tempSqlKey = [sqlKey stringByReplacingOccurrencesOfString:BG withString:@""];
+        if([sqlKey containsString:NJF]){
+            tempSqlKey = [sqlKey stringByReplacingOccurrencesOfString:NJF withString:@""];
         }
         for(NSString* keyAndType in keyAndTypes){
             NSArray* arrKT = [keyAndType componentsSeparatedByString:@"*"];
             NSString* key = [arrKT firstObject];
             NSString* type = [arrKT lastObject];
-            
             if ([tempSqlKey isEqualToString:key]){
                 id tempValue = valueDict[sqlKey];
                 id ivarValue = [self getSqlValue:tempValue type:type encode:NO];
@@ -464,7 +462,7 @@ NSString* njf_sqlKey(NSString* key){
     NSMutableDictionary* keyValueDict = [NSMutableDictionary dictionary];
     NSArray* keyAndTypes = [self getClassIvarList:[object class] Object:object onlyKey:NO];
     //忽略属性
-    NSArray* ignoreKeys = [self executeSelector:bg_ignoreKeysSelector forClass:[object class]];
+    NSArray* ignoreKeys = [self executeSelector:njf_ignoreKeysSelector forClass:[object class]];
     for(NSString* keyAndType in keyAndTypes){
         NSArray* arr = [keyAndType componentsSeparatedByString:@"*"];
         NSString* propertyName = arr[0];

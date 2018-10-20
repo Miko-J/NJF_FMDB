@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param name 表名
  @return 返回一个数组
  */
-- (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name;
++ (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name;
 @end
 
 NS_ASSUME_NONNULL_END

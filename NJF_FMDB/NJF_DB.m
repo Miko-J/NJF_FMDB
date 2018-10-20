@@ -9,7 +9,7 @@
 #import "NJF_DB.h"
 #import "FMDB.h"
 #import "NJF_DBTool.h"
-
+#import "NSObject+NJF_ObjModel.h"
 /**
  默认数据库名称
  */
@@ -74,6 +74,7 @@ static NJF_DB *njfDB = nil;
         name = SQLITE_NAME;
     }
     NSString *filename = CachePath(name);
+    NSLog(@"数据库路径 = %@",filename);
     _dbQueue = [FMDatabaseQueue databaseQueueWithPath:filename];
     return _dbQueue;
 }
@@ -129,7 +130,7 @@ static NJF_DB *njfDB = nil;
     __block BOOL result;
     [self executeDB:^(FMDatabase * _Nonnull db) {
         NSString *header = [NSString stringWithFormat:@"create table if not exists %@(",name];
-        NSMutableString *sql = [NSMutableString string];
+        NSMutableString *sql = [[NSMutableString alloc] init];
         [sql appendString:header];
         for (int i = 0; i < keys.count; i ++) {
             NSString *key = [keys[i] componentsSeparatedByString:@"*"][0];
@@ -285,7 +286,8 @@ static NJF_DB *njfDB = nil;
             for (id value in array) {
                 NSString* type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([value class])];
                 id sqlValue = [NJF_DBTool getSqlValue:value type:type encode:YES];
-                NSDictionary* dict = @{@"njf_param":sqlValue,@"njf_index":@(sqlCount++)};
+                sqlValue = [NSString stringWithFormat:@"%@$$$%@",sqlValue,type];
+                NSDictionary* dict = @{@"NJF_param":sqlValue,@"NJF_index":@(sqlCount++)};
                 //插入数据
                 [self insertIntoWithTableName:name dict:dict complete:^(BOOL isSuccess) {
                     if (isSuccess) {
@@ -310,11 +312,13 @@ static NJF_DB *njfDB = nil;
             if(array&&array.count){
                 resultM = [NSMutableArray array];
                 for(NSDictionary* dict in array){
-                    NSArray* keyAndTypes = [dict[@"BG_param"] componentsSeparatedByString:@"$$$"];
+                    NSArray* keyAndTypes = [dict[@"NJF_param"] componentsSeparatedByString:@"$$$"];
                     id value = [keyAndTypes firstObject];
                     NSString* type = [keyAndTypes lastObject];
                     value = [NJF_DBTool getSqlValue:value type:type encode:NO];
-                    [resultM addObject:value];
+                    if (value) {
+                        [resultM addObject:value];
+                    }
                 }
             }
             if (complete) complete(resultM);

@@ -26,18 +26,18 @@
     self.view.backgroundColor = [UIColor whiteColor];
     
     //存储数组
-    NSArray *arr = @[@"哈哈",@"9537",@"3.5"];
-    NSMutableArray *arrM = [NSMutableArray arrayWithArray:arr];
-    NJF_People *people = [[NJF_People alloc] init];
-    people.name = @"小明";
-    people.age = @(25);
-    people.height = 178.86;
-    [arrM addObject:people];
+//    NSArray *arr = @[@"哈哈",@"9527",@"3.5"];
+//    NSMutableArray *arrM = [NSMutableArray arrayWithArray:arr];
+//    NJF_People *people = [[NJF_People alloc] init];
+//    people.name = @"小明";
+//    people.age = @(25);
+//    people.height = 178.86;
+//    [arrM addObject:people];
+//
+//    [arrM njf_saveArrWithName:@"niujinfeng"];
     
-    [arrM njf_saveArrWithName:@"niujinfeng"];
-    
-    NSArray *array = [arrM njf_arrayWithName:@"niujinfeng"];
-    NSLog(@"%@",array);
+    NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];
+    NSLog(@"查询得到的数组中的数据%@",array);
 }
 
 //创建数据库

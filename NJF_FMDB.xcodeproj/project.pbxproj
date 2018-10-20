@@ -15,6 +15,7 @@
 		8838E8CF216F4900006CC5F1 /* NJF_People.m in Sources */ = {isa = PBXBuildFile; fileRef = 8838E8CE216F4900006CC5F1 /* NJF_People.m */; };
 		88ACB98C2176E2050065EDFA /* NSCache+NJF_Cache.m in Sources */ = {isa = PBXBuildFile; fileRef = 88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */; };
 		88ACB98F217709670065EDFA /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 88ACB98E217709660065EDFA /* libsqlite3.tbd */; };
+		88ACB9E2217AF14C0065EDFA /* NSObject+NJF_ObjModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 88ACB9E1217AF14C0065EDFA /* NSObject+NJF_ObjModel.m */; };
 		88D91651216BACE2008A4C2A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 88D91650216BACE2008A4C2A /* AppDelegate.m */; };
 		88D91659216BACE3008A4C2A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 88D91658216BACE3008A4C2A /* Assets.xcassets */; };
 		88D9165C216BACE3008A4C2A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */; };
@@ -63,6 +64,8 @@
 		88ACB98A2176E2050065EDFA /* NSCache+NJF_Cache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSCache+NJF_Cache.h"; sourceTree = "<group>"; };
 		88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSCache+NJF_Cache.m"; sourceTree = "<group>"; };
 		88ACB98E217709660065EDFA /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		88ACB9E0217AF14C0065EDFA /* NSObject+NJF_ObjModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NJF_ObjModel.h"; sourceTree = "<group>"; };
+		88ACB9E1217AF14C0065EDFA /* NSObject+NJF_ObjModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NJF_ObjModel.m"; sourceTree = "<group>"; };
 		88D9164C216BACE2008A4C2A /* NJF_FMDB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NJF_FMDB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		88D9164F216BACE2008A4C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		88D91650216BACE2008A4C2A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -160,6 +163,8 @@
 				8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */,
 				88ACB98A2176E2050065EDFA /* NSCache+NJF_Cache.h */,
 				88ACB98B2176E2050065EDFA /* NSCache+NJF_Cache.m */,
+				88ACB9E0217AF14C0065EDFA /* NSObject+NJF_ObjModel.h */,
+				88ACB9E1217AF14C0065EDFA /* NSObject+NJF_ObjModel.m */,
 				8838E8C7216F4896006CC5F1 /* NSArray+NJF_ArrModel.h */,
 				8838E8C8216F4896006CC5F1 /* NSArray+NJF_ArrModel.m */,
 				8838E8CA216F48CB006CC5F1 /* NSDictionary+NJF_DicModel.h */,
@@ -353,6 +358,7 @@
 				88D91690216BAE03008A4C2A /* FMDatabase.m in Sources */,
 				88D91691216BAE03008A4C2A /* FMDatabasePool.m in Sources */,
 				8838E8C3216F2C04006CC5F1 /* NJF_DBTool.m in Sources */,
+				88ACB9E2217AF14C0065EDFA /* NSObject+NJF_ObjModel.m in Sources */,
 				88ACB98C2176E2050065EDFA /* NSCache+NJF_Cache.m in Sources */,
 				8838E8C9216F4896006CC5F1 /* NSArray+NJF_ArrModel.m in Sources */,
 				88FF8BAA216E4B1A0096803B /* NJF_DB.m in Sources */,
