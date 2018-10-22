@@ -48,4 +48,24 @@
                       obj:(id _Nonnull)obj
                     index:(NSInteger)index
                  complete:(njf_complete_B)complete;
+
+/**
+ 删除数组某个位置上的元素
+ */
+- (void)deleteObjWithName:(NSString *_Nonnull)name
+                    index:(NSInteger)index
+                 complete:(njf_complete_B)complete;
+
+/**
+ 查询数组某个位置上的元素
+ */
+- (void)querryWithName:(NSString *_Nonnull)name
+                 index:(NSInteger)index
+                 value:(void(^)(id value))value;
+
+/**
+  删除表中的所有数据
+ */
+- (void)dropSafeTable:(NSString *_Nonnull)name
+             complete:(njf_complete_B)complete;
 @end

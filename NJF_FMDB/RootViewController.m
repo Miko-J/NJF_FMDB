@@ -39,8 +39,14 @@
     //插入数据
 //    [NSArray njf_addObjWithName:@"niujinfeng" obj:@[@"双击666",@"帅是一种态度"]];
 //    [NSArray njf_addObjWithName:@"niujinfeng" obj:@"今天天气很冷"];
-    [NSArray njf_updateObjWithName:@"niujinfeng" obj:@"9875" index:1];
     //更新数据
+//    [NSArray njf_updateObjWithName:@"niujinfeng" obj:@"9875" index:1];
+    //删除数据
+//    [NSArray njf_deleteObjWithName:@"niujinfeng" index:1];
+    //获取表名下面某个索引的数据
+//    id value = [NSArray nif_ObjWithName:@"niujinfeng" index:1];
+//    NSLog(@"%@",value);
+    [NSArray njf_clearArrayWithName:@"niujinfeng"];
     NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];
     NSLog(@"查询得到的数组中的数据%@",array);
 }

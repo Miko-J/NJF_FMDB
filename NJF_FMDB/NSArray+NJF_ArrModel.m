@@ -57,4 +57,36 @@
     [[NJF_DB shareManager] closeDB];
     return  result;
 }
+
++ (BOOL)njf_deleteObjWithName:(NSString *const _Nonnull)name
+                        index:(NSInteger)index{
+    __block BOOL result;
+    [[NJF_DB shareManager] deleteObjWithName:name index:index complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return  result;
+}
+
++ (id _Nullable)nif_ObjWithName:(NSString *const _Nonnull)name
+                          index:(NSInteger)index{
+    __block id resultValue;
+    [[NJF_DB shareManager] querryWithName:name index:index value:^(id value) {
+        resultValue = value;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return resultValue;
+}
+
++ (BOOL)njf_clearArrayWithName:(NSString *const _Nonnull)name{
+    __block BOOL result;
+    [[NJF_DB shareManager] dropSafeTable:name complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
 @end

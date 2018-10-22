@@ -25,6 +25,15 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name;
 
+
+/**
+ 清楚表的所有数据
+
+ @param name name
+ @return BOOL
+ */
++ (BOOL)njf_clearArrayWithName:(NSString *const _Nonnull)name;
+
 /**
  根据表名在数组中添加元素
  @param name 表名
@@ -33,7 +42,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (BOOL)njf_addObjWithName:(NSString *const _Nonnull)name
                        obj:(id const _Nonnull)obj;
-
 
 /**
  根据索引和表名在数组中更新元素
@@ -45,6 +53,25 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)njf_updateObjWithName:(NSString *const _Nonnull)name
                           obj:(id _Nonnull)obj
                         index:(NSInteger)index;
-@end
 
+/**
+ 删除某个位置上上的元素
+
+ @param name 表名
+ @param index 数组索引
+ @return BOOL
+ */
++ (BOOL)njf_deleteObjWithName:(NSString *const _Nonnull)name
+                        index:(NSInteger)index;
+
+
+/**
+ 获取某个索引下的元素
+ @param name 表名
+ @param index 索引
+ @return 返回元素
+ */
++ (id _Nullable)nif_ObjWithName:(NSString *const _Nonnull)name
+                  index:(NSInteger)index;
+@end
 NS_ASSUME_NONNULL_END

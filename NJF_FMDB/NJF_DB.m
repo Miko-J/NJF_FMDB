@@ -94,7 +94,8 @@ static NJF_DB *njfDB = nil;
 /**
  数据库中是否存在表.
  */
-- (void)isExistWithTableName:(NSString *_Nonnull)name complete:(njf_complete_B)complete{
+- (void)isExistWithTableName:(NSString *_Nonnull)name
+                    complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
     __block BOOL result;
     [self executeDB:^(FMDatabase * _Nonnull db) {
@@ -124,7 +125,9 @@ static NJF_DB *njfDB = nil;
 /**
  创建表
  */
-- (void)creatTableWithTableName:(NSString *)name keys:(NSArray <NSString *> *_Nonnull)keys complete:(njf_complete_B)complete{
+- (void)creatTableWithTableName:(NSString *)name
+                           keys:(NSArray <NSString *> *_Nonnull)keys
+                       complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
     NSAssert(keys, @"字段数组不能为空");
     __block BOOL result;
@@ -192,7 +195,9 @@ static NJF_DB *njfDB = nil;
 }
 
 //查询表中有多少数据
--(NSInteger)getKeyMaxForTable:(NSString*)name key:(NSString*)key db:(FMDatabase*)db{
+-(NSInteger)getKeyMaxForTable:(NSString*)name
+                          key:(NSString*)key
+                           db:(FMDatabase*)db{
     __block NSInteger num = 0;
     [db executeStatements:[NSString stringWithFormat:@"select max(%@) from %@",key,name] withResultBlock:^int(NSDictionary *resultsDictionary){
         id dbResult = [resultsDictionary.allValues lastObject];
@@ -225,7 +230,9 @@ static NJF_DB *njfDB = nil;
 /**
  插入数据
  */
-- (void)insertIntoWithTableName:(NSString *_Nonnull)name dict:(NSDictionary *_Nonnull)dict complete:(njf_complete_B)complete{
+- (void)insertIntoWithTableName:(NSString *_Nonnull)name
+                           dict:(NSDictionary *_Nonnull)dict
+                       complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
     NSAssert(dict, @"插入的字典不能为空");
     __block BOOL result;
@@ -330,7 +337,9 @@ static NJF_DB *njfDB = nil;
     dispatch_semaphore_signal(self.semaphore);
 }
 
--(void)queryQueueWithTableName:(NSString* _Nonnull)name conditions:(NSString* _Nullable)conditions complete:(njf_complete_A)complete{
+-(void)queryQueueWithTableName:(NSString* _Nonnull)name
+                    conditions:(NSString* _Nullable)conditions
+                      complete:(njf_complete_A)complete{
     NSAssert(name,@"表名不能为空!");
     __block NSMutableArray* arrM = nil;
     [self executeDB:^(FMDatabase * _Nonnull db){
@@ -383,7 +392,10 @@ static NJF_DB *njfDB = nil;
 /**
  更新数据
  */
-- (void)updateWithTableName:(NSString *_Nonnull)name valueDict:(NSDictionary *_Nonnull)valueDict where:(NSArray *_Nullable)where complete:(njf_complete_B)complete{
+- (void)updateWithTableName:(NSString *_Nonnull)name
+                  valueDict:(NSDictionary *_Nonnull)valueDict
+                      where:(NSArray *_Nullable)where
+                   complete:(njf_complete_B)complete{
     __block BOOL result;
     NSMutableArray* arguments = [NSMutableArray array];
     [self executeDB:^(FMDatabase * _Nonnull db) {
@@ -406,5 +418,131 @@ static NJF_DB *njfDB = nil;
     //数据监听执行函数
     [self doChangeWithName:name flag:result state:njf_update];
     if (complete) complete (result);
+}
+
+/**
+ 删除数组某个位置上的元素,改变索引
+ */
+- (void)deleteObjWithName:(NSString *_Nonnull)name
+                    index:(NSInteger)index
+                 complete:(njf_complete_B)complete{
+    NSAssert(name, @"表名不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block NSInteger flag = 0;
+    @autoreleasepool {
+        [self executeTransation:^BOOL{
+            [self deleteQueueWithTableName:name conditions:[NSString stringWithFormat:@"where NJF_index=%ld",(long)index] complete:^(BOOL isSuccess) {
+                if (isSuccess) {
+                    flag ++;
+                }
+            }];
+            if (flag) {//数组元素删除成功，改变存储的索引
+                [self updateQueueWithTableName:name valueDict:nil conditions:[NSString stringWithFormat:@"set NJF_index=NJF_index-1 where NJF_index>%@",@(index)] complete:^(BOOL isSuccess) {
+                    flag ++;
+                }];
+            }
+            return flag == 2;
+        }];
+        if (complete) complete(flag == 2);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+/**
+ 删除数组某个位置上的元素
+ */
+- (void)deleteQueueWithTableName:(NSString *_Nonnull)name
+                      conditions:(NSString *_Nonnull)conditions
+                        complete:(njf_complete_B)complete{
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSString* SQL = conditions?[NSString stringWithFormat:@"delete from %@ %@",name,conditions]:[NSString stringWithFormat:@"delete from %@",name];
+        result = [db executeUpdate:SQL];
+    }];
+    //数据监听执行函数
+    [self doChangeWithName:name flag:result state:njf_delete];
+    if (complete) complete(result);
+}
+
+/**
+更新数组的索引
+ */
+- (void)updateQueueWithTableName:(NSString *_Nonnull)name
+                       valueDict:(NSDictionary *_Nullable)valueDict
+                      conditions:(NSString *_Nonnull)conditions
+                        complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空!");
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db){
+        NSString* SQL;
+        if (!valueDict || !valueDict.count) {
+            SQL = [NSString stringWithFormat:@"update %@ %@",name,conditions];
+        }else{
+            NSMutableString* param = [NSMutableString stringWithFormat:@"update %@ set ",name];
+            for(int i=0;i<valueDict.allKeys.count;i++){
+                NSString* key = valueDict.allKeys[i];
+                [param appendFormat:@"%@=?",key];
+                if(i != (valueDict.allKeys.count-1)) {
+                    [param appendString:@","];
+                }
+            }
+            [param appendFormat:@" %@",conditions];
+            SQL = param;
+        }
+        result = [db executeUpdate:SQL withArgumentsInArray:valueDict.allValues];
+    }];
+    
+    //数据监听执行函数
+    [self doChangeWithName:name flag:result state:njf_update];
+    if (complete) complete(result);
+}
+
+- (void)querryWithName:(NSString *_Nonnull)name
+                 index:(NSInteger)index
+                 value:(void(^)(id value))value{
+    NSAssert(name, @"表名不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block id resultValue = nil;
+    @autoreleasepool {
+        [self queryQueueWithTableName:name conditions:[NSString stringWithFormat:@"where NJF_index=%@",@(index)] complete:^(NSArray * _Nullable array) {
+            if(array&&array.count){
+                NSDictionary* dict = [array firstObject];
+                NSArray* keyAndTypes = [dict[@"NJF_param"] componentsSeparatedByString:@"$$$"];
+                id value = [keyAndTypes firstObject];
+                NSString* type = [keyAndTypes lastObject];
+                resultValue = [NJF_DBTool getSqlValue:value type:type encode:NO];
+            }
+        }];
+        
+    }
+    if (value) value(resultValue);
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+/**
+ 删除表(线程安全).
+ */
+- (void)dropSafeTable:(NSString *_Nonnull)name
+             complete:(njf_complete_B)complete{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self dropTable:name complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+/**
+ 删除表.
+ */
+-(void)dropTable:(NSString* _Nonnull)name complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空!");
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSString* SQL = [NSString stringWithFormat:@"drop table %@",name];
+        result = [db executeUpdate:SQL];
+    }];
+    //数据监听执行函数
+    [self doChangeWithName:name flag:result state:njf_drop];
+    if (complete) complete(result);
 }
 @end
