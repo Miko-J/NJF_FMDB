@@ -40,4 +40,12 @@
  */
 - (void)querryArrayWithName:(NSString *_Nonnull)name
                    complete:(njf_complete_A)complete;
+
+/**
+ 更新数组元素
+ */
+- (void)updateobjWithName:(NSString *_Nonnull)name
+                      obj:(id _Nonnull)obj
+                    index:(NSInteger)index
+                 complete:(njf_complete_B)complete;
 @end

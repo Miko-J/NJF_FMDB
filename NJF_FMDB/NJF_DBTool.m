@@ -62,6 +62,33 @@ NSString* njf_sqlKey(NSString* key){
     return [NSString stringWithFormat:@"%@%@",NJF,key];
 }
 
+/**
+ 抽取封装条件数组处理函数
+ */
++(NSArray*)where:(NSArray*)where{
+    NSMutableArray* results = [NSMutableArray array];
+    NSMutableString* SQL = [NSMutableString string];
+    if(!(where.count%3)){
+        [SQL appendString:@" where "];
+        for(int i=0;i<where.count;i+=3){
+            [SQL appendFormat:@"%@%@%@?",NJF,where[i],where[i+1]];
+            if (i != (where.count-3)) {
+                [SQL appendString:@" and "];
+            }
+        }
+    }else{
+        //NSLog(@"条件数组错误!");
+        NSAssert(NO,@"条件数组错误!");
+    }
+    NSMutableArray* wheres = [NSMutableArray array];
+    for(int i=0;i<where.count;i+=3){
+        [wheres addObject:where[i+2]];
+    }
+    [results addObject:SQL];
+    [results addObject:wheres];
+    return results;
+}
+
 + (NSString *)keyType:(NSString *)param{
     NSArray* array = [param componentsSeparatedByString:@"*"];
     NSString* key = array[0];

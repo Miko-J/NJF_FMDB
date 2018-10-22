@@ -34,7 +34,13 @@
 //    people.height = 178.86;
 //    [arrM addObject:people];
 //    [arrM njf_saveArrWithName:@"niujinfeng"];
+
     
+    //插入数据
+//    [NSArray njf_addObjWithName:@"niujinfeng" obj:@[@"双击666",@"帅是一种态度"]];
+//    [NSArray njf_addObjWithName:@"niujinfeng" obj:@"今天天气很冷"];
+    [NSArray njf_updateObjWithName:@"niujinfeng" obj:@"9875" index:1];
+    //更新数据
     NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];
     NSLog(@"查询得到的数组中的数据%@",array);
 }

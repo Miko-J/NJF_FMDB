@@ -34,6 +34,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 +(id _Nonnull)getSqlValue:(id _Nonnull)value type:(NSString* _Nonnull)type encode:(BOOL)encode;
 
+/**
+ 抽取封装条件数组处理函数.
+ */
++(NSArray *_Nonnull)where:(NSArray *_Nonnull)where;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -35,4 +35,26 @@
     [[NJF_DB shareManager] closeDB];
     return arr;
 }
+
++ (BOOL)njf_addObjWithName:(NSString * const _Nonnull)name obj:(id const _Nonnull)obj{
+    __block BOOL result;
+    [[NJF_DB shareManager] saveArray:@[obj] name:name complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
+
++ (BOOL)njf_updateObjWithName:(NSString *const _Nonnull)name
+                          obj:(id _Nonnull)obj
+                        index:(NSInteger)index{
+    __block BOOL result;
+    [[NJF_DB shareManager] updateobjWithName:name obj:obj index:index complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] closeDB];
+    return  result;
+}
 @end

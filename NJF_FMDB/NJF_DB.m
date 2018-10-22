@@ -302,6 +302,9 @@ static NJF_DB *njfDB = nil;
     dispatch_semaphore_signal(self.semaphore);
 }
 
+/**
+ 读取数组某个元素.
+ */
 - (void)querryArrayWithName:(NSString *_Nonnull)name
                    complete:(njf_complete_A)complete{
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
@@ -351,5 +354,57 @@ static NJF_DB *njfDB = nil;
         [rs close];
     }];
     if (complete) complete(arrM);
+}
+
+/**
+ 更新数组某个元素.
+ */
+- (void)updateobjWithName:(NSString *_Nonnull)name
+                      obj:(id _Nonnull)obj
+                    index:(NSInteger)index
+                 complete:(njf_complete_B)complete{
+    NSAssert(name, @"表名不能为空");
+    NSAssert(obj, @"更新的元素不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block BOOL result;
+    @autoreleasepool {
+        NSString *type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([obj class])];
+        id sqlValue = [NJF_DBTool getSqlValue:obj type:type encode:YES ];
+        sqlValue = [NSString stringWithFormat:@"%@$$$%@",sqlValue,type];
+        NSDictionary *dict = @{@"NJF_param":sqlValue};
+        [self updateWithTableName:name valueDict:dict where:@[@"index",@"=",@(index)] complete:^(BOOL isSuccess) {
+            result = isSuccess;
+        }];
+        if (complete) complete(result);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+/**
+ 更新数据
+ */
+- (void)updateWithTableName:(NSString *_Nonnull)name valueDict:(NSDictionary *_Nonnull)valueDict where:(NSArray *_Nullable)where complete:(njf_complete_B)complete{
+    __block BOOL result;
+    NSMutableArray* arguments = [NSMutableArray array];
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSMutableString* SQL = [[NSMutableString alloc] init];
+        [SQL appendFormat:@"update %@ set ",name];
+        for(int i=0;i<valueDict.allKeys.count;i++){
+            [SQL appendFormat:@"%@=?",valueDict.allKeys[i]];
+            [arguments addObject:valueDict[valueDict.allKeys[i]]];
+            if (i != (valueDict.allKeys.count-1)) {
+                [SQL appendString:@","];
+            }
+        }
+        if(where && (where.count>0)){
+            NSArray* results = [NJF_DBTool where:where];
+            [SQL appendString:results[0]];
+            [arguments addObjectsFromArray:results[1]];
+        }
+        result = [db executeUpdate:SQL withArgumentsInArray:arguments];
+    }];
+    //数据监听执行函数
+    [self doChangeWithName:name flag:result state:njf_update];
+    if (complete) complete (result);
 }
 @end
