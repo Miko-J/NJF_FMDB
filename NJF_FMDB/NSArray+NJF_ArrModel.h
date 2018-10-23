@@ -25,10 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSArray *_Nonnull)njf_arrayWithName:(NSString * const _Nonnull)name;
 
-
 /**
  清楚表的所有数据
-
  @param name name
  @return BOOL
  */
@@ -56,7 +54,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  删除某个位置上上的元素
-
  @param name 表名
  @param index 数组索引
  @return BOOL
@@ -73,5 +70,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (id _Nullable)nif_ObjWithName:(NSString *const _Nonnull)name
                   index:(NSInteger)index;
+
 @end
 NS_ASSUME_NONNULL_END

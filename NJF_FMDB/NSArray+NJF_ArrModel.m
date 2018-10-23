@@ -89,4 +89,5 @@
     [[NJF_DB shareManager] closeDB];
     return result;
 }
+
 @end

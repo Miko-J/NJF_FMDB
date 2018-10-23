@@ -63,6 +63,16 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 /**
+ 判断是不是 "唯一约束" 字段.
+ */
++(BOOL)isUniqueKey:(NSString* _Nonnull)uniqueKey
+              with:(NSString* _Nonnull)param{
+    NSArray* array = [param componentsSeparatedByString:@"*"];
+    NSString* key = array[0];
+    return [uniqueKey isEqualToString:key];
+}
+
+/**
  抽取封装条件数组处理函数
  */
 +(NSArray*)where:(NSArray*)where{

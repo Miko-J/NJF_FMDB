@@ -127,6 +127,7 @@ static NJF_DB *njfDB = nil;
  */
 - (void)creatTableWithTableName:(NSString *)name
                            keys:(NSArray <NSString *> *_Nonnull)keys
+                     uniqueKeys:(NSArray *_Nullable)uniqueKeys
                        complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
     NSAssert(keys, @"字段数组不能为空");
@@ -135,18 +136,36 @@ static NJF_DB *njfDB = nil;
         NSString *header = [NSString stringWithFormat:@"create table if not exists %@(",name];
         NSMutableString *sql = [[NSMutableString alloc] init];
         [sql appendString:header];
+        NSInteger uniqueKeyFlag = uniqueKeys.count;
+        NSMutableArray* tempUniqueKeys = [NSMutableArray arrayWithArray:uniqueKeys];
         for (int i = 0; i < keys.count; i ++) {
             NSString *key = [keys[i] componentsSeparatedByString:@"*"][0];
-            if ([key isEqualToString:njf_primaryKey]) {
-                [sql appendFormat:@"%@ primary key autoincrement",[NJF_DBTool keyType:keys[i]]];
+            
+            if(tempUniqueKeys.count && [tempUniqueKeys containsObject:key]){
+                for(NSString* uniqueKey in tempUniqueKeys){
+                    if([NJF_DBTool isUniqueKey:uniqueKey with:keys[i]]){
+                        [sql appendFormat:@"%@ unique",[NJF_DBTool keyType:keys[i]]];
+                        [tempUniqueKeys removeObject:uniqueKey];
+                        uniqueKeyFlag--;
+                        break;
+                    }
+                }
             }else{
-                [sql appendString:[NJF_DBTool keyType:keys[i]]];
+                if ([key isEqualToString:njf_primaryKey]) {
+                    [sql appendFormat:@"%@ primary key autoincrement",[NJF_DBTool keyType:keys[i]]];
+                }else{
+                    [sql appendString:[NJF_DBTool keyType:keys[i]]];
+                }
             }
+            
             if (i == (keys.count - 1)) {
                 [sql appendString:@");"];
             }else{
                 [sql appendString:@","];
             }
+        }
+        if(uniqueKeys.count){
+            NSAssert(!uniqueKeyFlag,@"没有找到设置的'唯一约束',请检查模型类.m文件的bg_uniqueKeys函数返回值是否正确!");
         }
         //创建表
         result = [db executeUpdate:sql];
@@ -282,8 +301,9 @@ static NJF_DB *njfDB = nil;
     @autoreleasepool {
         __weak typeof(self) weakSelf = self;
         [self isExistWithTableName:name complete:^(BOOL isSuccess) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!isSuccess) {//创建表
-                [weakSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] complete:nil];
+                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] uniqueKeys:nil complete:nil];
             }
         }];
         //获取表中有多少数据
@@ -544,5 +564,61 @@ static NJF_DB *njfDB = nil;
     //数据监听执行函数
     [self doChangeWithName:name flag:result state:njf_drop];
     if (complete) complete(result);
+}
+
+/*********************字典*******************/
+- (void)saveDict:(NSDictionary *_Nonnull)dict
+            name:(NSString *_Nonnull)name
+        complete:(njf_complete_B)complete{
+    NSAssert(dict || dict.allKeys.count, @"字典不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        __weak typeof(self) weakSelf = self;
+        [self isExistWithTableName:name complete:^(BOOL isSuccess) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!isSuccess) {
+                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"key*@\"NSString\"",@"value*@\"NSString\""] uniqueKeys:@[@"key"] complete:nil];
+            }
+        }];
+        __block NSInteger num = 0;
+        [self executeTransation:^BOOL{
+            [dict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull value, BOOL * _Nonnull stop) {
+                NSString* type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([value class])];
+                id sqlValue = [NJF_DBTool getSqlValue:value type:type encode:YES];
+                sqlValue = [NSString stringWithFormat:@"%@$$$%@",sqlValue,type];
+                NSDictionary* dict = @{@"NJF_key":key,@"NJF_value":sqlValue};
+                [self insertIntoWithTableName:name dict:dict complete:^(BOOL isSuccess) {
+                    if (isSuccess) {
+                        num ++;
+                    }
+                }];
+            }];
+            return YES;
+        }];
+        if (complete) complete(num == dict.allKeys.count);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_enumerateKeysAndObjectsName:(NSString *_Nonnull)name block:(void(^ _Nonnull)(NSString *_Nonnull key, NSString *_Nonnull value, BOOL *stop))block complete:(njf_complete_B)complete{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        NSString* condition = [NSString stringWithFormat:@"order by %@ asc",njf_sqlKey(njf_primaryKey)];
+        [self queryQueueWithTableName:name conditions:condition complete:^(NSArray * _Nullable array) {
+            BOOL stopFlag = NO;
+            for(NSDictionary* dict in array){
+                NSArray* keyAndTypes = [dict[@"NJF_value"] componentsSeparatedByString:@"$$$"];
+                NSString* key = dict[@"NJF_key"];
+                id value = [keyAndTypes firstObject];
+                NSString* type = [keyAndTypes lastObject];
+                value = [NJF_DBTool getSqlValue:value type:type encode:NO];
+                !block?:block(key,value,&stopFlag);
+                if(stopFlag){
+                    break;
+                }
+            }
+        }];
+    }
+    dispatch_semaphore_signal(self.semaphore);
 }
 @end

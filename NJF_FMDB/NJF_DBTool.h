@@ -13,6 +13,12 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NJF_DBTool : NSObject
 
 /**
+ 判断是不是主键.
+ */
++(BOOL)isUniqueKey:(NSString* _Nonnull)uniqueKey
+              with:(NSString* _Nonnull)param;
+
+/**
  判断并获取字段类型.
  */
 + (NSString *)keyType:(NSString *)param;
@@ -32,12 +38,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param encode YES:编码 , NO:解码.
  @return 返回id类型的数据
  */
-+(id _Nonnull)getSqlValue:(id _Nonnull)value type:(NSString* _Nonnull)type encode:(BOOL)encode;
++(id _Nonnull)getSqlValue:(id _Nonnull)value
+                     type:(NSString* _Nonnull)type
+                   encode:(BOOL)encode;
 
 /**
  抽取封装条件数组处理函数.
  */
 +(NSArray *_Nonnull)where:(NSArray *_Nonnull)where;
+
 @end
 
 NS_ASSUME_NONNULL_END

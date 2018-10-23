@@ -68,4 +68,17 @@
  */
 - (void)dropSafeTable:(NSString *_Nonnull)name
              complete:(njf_complete_B)complete;
+
+/**************************字典操作*********************/
+/**
+ 直接存储字典
+ */
+- (void)saveDict:(NSDictionary *_Nonnull)dict
+            name:(NSString *_Nonnull)name
+        complete:(njf_complete_B)complete;
+
+/**
+遍历字典
+ */
+- (void)njf_enumerateKeysAndObjectsName:(NSString *_Nonnull)name block:(void(^ _Nonnull)(NSString *_Nonnull key, NSString *_Nonnull value, BOOL *stop))block complete:(njf_complete_B)complete;
 @end
