@@ -54,4 +54,33 @@
     [[NJF_DB shareManager] closeDB];
     return result;
 }
+
++ (id _Nonnull)njf_valueForKeyWithName:(NSString *const _Nonnull)name
+                                   key:(NSString *_Nonnull)key;{
+    __block id result;
+    [[NJF_DB shareManager] njf_valueForKeyWithName:name key:key valueBlock:^(id  _Nonnull value) {
+        result = value;
+    }];
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
+
++ (BOOL)njf_deleteValueForKeyWithName:(NSString *const _Nonnull)name
+                                  key:(NSString *_Nonnull)key{
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_deleteValueForKeyWithName:name key:key complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
+
++ (BOOL)njf_clearDictWithName:(NSString *const _Nonnull)name{
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_clearDictWithName:name complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
 @end

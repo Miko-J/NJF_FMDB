@@ -39,7 +39,13 @@
     //保存某个字典数据
     //[NSDictionary njf_setValueWithName:@"niujinfeng" value:@[@"lol",@"wzry"] key:@"sss"];
     //更新字典元素
-    [NSDictionary njf_updateValueWithName:@"niujinfeng" value:@"是他是他就是他" key:@"666"];
+//    [NSDictionary njf_updateValueWithName:@"niujinfeng" value:@"是他是他就是他" key:@"666"];
+    //根据key获取字段的value
+//    id value = [NSDictionary njf_valueForKeyWithName:@"niujinfeng" key:@"666"];
+    //根据key清除字典数据
+//    [NSDictionary njf_deleteValueForKeyWithName:@"niujinfeng" key:@"666"];
+    //清除字典数据
+    [NSDictionary njf_clearDictWithName:@"niujinfeng"];
     [NSDictionary njf_enumerateKeysAndObjectsName:@"niujinfeng" block:^(NSString * _Nonnull key, NSString * _Nonnull value, BOOL * _Nonnull stop) {
         NSLog(@"存储的字典数据为%@:%@",key,value);
     }];

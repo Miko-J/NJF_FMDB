@@ -47,6 +47,33 @@ NS_ASSUME_NONNULL_BEGIN
 + (BOOL)njf_updateValueWithName:(NSString *const _Nonnull)name
                           value:(id _Nonnull)value
                             key:(NSString *_Nonnull)key;
+
+
+/**
+ 根据key，查找value
+ @param name name
+ @param key key
+ @return 返回一个value
+ */
++ (id _Nonnull)njf_valueForKeyWithName:(NSString *const _Nonnull)name
+                       key:(NSString *_Nonnull)key;
+
+
+/**
+ 删除一个字典数据
+ @param name name
+ @param key key
+ @return BOOL
+ */
++ (BOOL)njf_deleteValueForKeyWithName:(NSString *const _Nonnull)name
+                                  key:(NSString *_Nonnull)key;
+/**
+ 清除字典数据
+ @param name name
+ @return BOOL
+ */
++ (BOOL)njf_clearDictWithName:(NSString *const _Nonnull)name;
+
 @end
 
 NS_ASSUME_NONNULL_END

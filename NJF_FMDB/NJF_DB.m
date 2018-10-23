@@ -628,7 +628,11 @@ static NJF_DB *njfDB = nil;
     NSAssert(key, @"key不能为空");
     NSAssert(value, @"value不能为空");
     NSDictionary *dict = @{key:value};
-    [self saveDict:dict name:name complete:complete];
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self saveDict:dict name:name complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
 }
 
 - (void)njf_updateValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
@@ -644,6 +648,57 @@ static NJF_DB *njfDB = nil;
         sqlvalue = [NSString stringWithFormat:@"%@$$$%@",sqlvalue,type];
         NSDictionary* dict = @{@"NJF_value":sqlvalue};
         [self updateWithTableName:name valueDict:dict where:@[@"key",@"=",key] complete:^(BOOL isSuccess) {
+            result = isSuccess;
+        }];
+        if (complete) complete(result);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_valueForKeyWithName:(NSString *const _Nonnull)name
+                       key:(NSString *_Nonnull)key
+                valueBlock:(void (^ _Nonnull)(id _Nonnull value))block{
+    NSAssert(key,@"key不能为空!");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block id resultValue = nil;
+    @autoreleasepool {
+        [self queryQueueWithTableName:name conditions:[NSString stringWithFormat:@"where NJF_key='%@'",key] complete:^(NSArray * _Nullable array){
+            if(array&&array.count){
+                NSDictionary* dict = [array firstObject];
+                NSArray* keyAndTypes = [dict[@"NJF_value"] componentsSeparatedByString:@"$$$"];
+                id value = [keyAndTypes firstObject];
+                NSString* type = [keyAndTypes lastObject];
+                resultValue = [NJF_DBTool getSqlValue:value type:type encode:NO];
+            }
+        }];
+        if (block) block(resultValue);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_deleteValueForKeyWithName:(NSString *const _Nonnull)name
+                                  key:(NSString *_Nonnull)key
+                             complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空!");
+    NSAssert(key,@"key不能为空!");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block BOOL result;
+    @autoreleasepool {
+        [self deleteQueueWithTableName:name conditions:[NSString stringWithFormat:@"where NJF_key='%@'",key] complete:^(BOOL isSuccess) {
+            result = isSuccess;
+        }];
+        if (complete) complete(result);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_clearDictWithName:(NSString *const _Nonnull)name
+                     complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空!");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block BOOL result;
+    @autoreleasepool {
+        [self dropTable:name complete:^(BOOL isSuccess) {
             result = isSuccess;
         }];
         if (complete) complete(result);

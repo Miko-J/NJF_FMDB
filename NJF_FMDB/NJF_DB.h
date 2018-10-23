@@ -97,4 +97,23 @@
 - (void)njf_updateValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
                             key:(NSString *_Nonnull)key
                        complete:(njf_complete_B)complete;
+
+/**
+ 根据key获取value
+ */
+- (void)njf_valueForKeyWithName:(NSString *const _Nonnull)name
+                           key:(NSString *_Nonnull)key
+                  valueBlock:(void (^ _Nonnull)(id _Nonnull value))block;
+
+/**
+ 根据key删除字典元素
+ */
+- (void)njf_deleteValueForKeyWithName:(NSString *const _Nonnull)name
+                                  key:(NSString *_Nonnull)key
+                             complete:(njf_complete_B)complete;
+/**
+ 清除字典数据
+ */
+- (void)njf_clearDictWithName:(NSString *const _Nonnull)name
+                     complete:(njf_complete_B)complete;
 @end
