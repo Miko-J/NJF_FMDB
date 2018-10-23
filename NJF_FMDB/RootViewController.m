@@ -36,7 +36,10 @@
 //    people.height = 178.86;
 //    NSDictionary *dict = @{@"666":@"我是谁",@"hehe":people};
 //    [dict njf_saveDictWithName:@"niujinfeng"];
-    
+    //保存某个字典数据
+    //[NSDictionary njf_setValueWithName:@"niujinfeng" value:@[@"lol",@"wzry"] key:@"sss"];
+    //更新字典元素
+    [NSDictionary njf_updateValueWithName:@"niujinfeng" value:@"是他是他就是他" key:@"666"];
     [NSDictionary njf_enumerateKeysAndObjectsName:@"niujinfeng" block:^(NSString * _Nonnull key, NSString * _Nonnull value, BOOL * _Nonnull stop) {
         NSLog(@"存储的字典数据为%@:%@",key,value);
     }];

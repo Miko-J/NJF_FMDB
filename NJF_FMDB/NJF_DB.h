@@ -80,5 +80,21 @@
 /**
 遍历字典
  */
-- (void)njf_enumerateKeysAndObjectsName:(NSString *_Nonnull)name block:(void(^ _Nonnull)(NSString *_Nonnull key, NSString *_Nonnull value, BOOL *stop))block complete:(njf_complete_B)complete;
+- (void)njf_enumerateKeysAndObjectsName:(NSString *_Nonnull)name
+                                  block:(void(^ _Nonnull)(NSString *_Nonnull key, NSString *_Nonnull value, BOOL *stop))block
+                               complete:(njf_complete_B)complete;
+
+/**
+ 添加字典元素
+ */
+- (void)njf_setValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
+                         key:(NSString *_Nonnull)key
+                    complete:(njf_complete_B)complete;
+
+/**
+ 根据key更新字典元素
+ */
+- (void)njf_updateValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
+                            key:(NSString *_Nonnull)key
+                       complete:(njf_complete_B)complete;
 @end

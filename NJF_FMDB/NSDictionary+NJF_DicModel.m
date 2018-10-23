@@ -24,9 +24,31 @@
     }
 }
 
-+ (BOOL)njf_enumerateKeysAndObjectsName:(NSString *const _Nonnull)name block:(void(^ _Nonnull)(NSString *_Nonnull key, NSString *_Nonnull value, BOOL *stop))block{
++ (BOOL)njf_enumerateKeysAndObjectsName:(NSString *const _Nonnull)name block:(void(^ _Nonnull)(NSString *_Nonnull key, id _Nonnull value, BOOL *stop))block{
     __block BOOL result;
     [[NJF_DB shareManager] njf_enumerateKeysAndObjectsName:name block:block complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
+
++ (BOOL)njf_setValueWithName:(NSString *const _Nonnull)name
+                       value:(id _Nonnull)value
+                         key:(NSString *_Nonnull)key{
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_setValueWithName:name value:value key:key complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] closeDB];
+    return result;
+}
+
++ (BOOL)njf_updateValueWithName:(NSString *const _Nonnull)name
+                          value:(id _Nonnull)value
+                            key:(NSString *_Nonnull)key{
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_updateValueWithName:name value:value key:key complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
     [[NJF_DB shareManager] closeDB];

@@ -621,4 +621,34 @@ static NJF_DB *njfDB = nil;
     }
     dispatch_semaphore_signal(self.semaphore);
 }
+
+- (void)njf_setValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
+                         key:(NSString *_Nonnull)key
+                    complete:(njf_complete_B)complete{
+    NSAssert(key, @"key不能为空");
+    NSAssert(value, @"value不能为空");
+    NSDictionary *dict = @{key:value};
+    [self saveDict:dict name:name complete:complete];
+}
+
+- (void)njf_updateValueWithName:(NSString *_Nonnull)name value:(id _Nonnull)value
+                            key:(NSString *_Nonnull)key
+                       complete:(njf_complete_B)complete{
+    NSAssert(key,@"key不能为空!");
+    NSAssert(value,@"value不能为空!");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block BOOL result;
+    @autoreleasepool{
+        NSString* type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([value class])];
+        id sqlvalue = [NJF_DBTool getSqlValue:value type:type encode:YES];
+        sqlvalue = [NSString stringWithFormat:@"%@$$$%@",sqlvalue,type];
+        NSDictionary* dict = @{@"NJF_value":sqlvalue};
+        [self updateWithTableName:name valueDict:dict where:@[@"key",@"=",key] complete:^(BOOL isSuccess) {
+            result = isSuccess;
+        }];
+        if (complete) complete(result);
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
 @end
