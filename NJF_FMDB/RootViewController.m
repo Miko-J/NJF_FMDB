@@ -26,21 +26,22 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    
     //自定义数据库名称，默认为NJF_FMDB.db
 //    njf_setSqliteName(@"xiaomingFMDB");
     //删除数据库
 //    njf_deleteSqlite(@"xiaomingFMDB");
+    
+    
 }
 
 - (void)testDict{
-//    NSDictionary *dict = @{@"haha":@"我是谁",@"hehe":@"我那知道"};
+    NSDictionary *dict = @{@"haha":@"我是谁",@"hehe":@"我那知道"};
 //    NJF_People *people = [[NJF_People alloc] init];
 //    people.name = @"小明";
 //    people.age = @(25);
 //    people.height = 178.86;
 //    NSDictionary *dict = @{@"666":@"我是谁",@"hehe":people};
-//    [dict njf_saveDictWithName:@"niujinfeng"];
+    [dict njf_saveDictWithName:@"niujinfeng"];
     //保存某个字典数据
     //[NSDictionary njf_setValueWithName:@"niujinfeng" value:@[@"lol",@"wzry"] key:@"sss"];
     //更新字典元素
@@ -50,7 +51,7 @@
     //根据key清除字典数据
 //    [NSDictionary njf_deleteValueForKeyWithName:@"niujinfeng" key:@"666"];
     //清除字典数据
-    [NSDictionary njf_clearDictWithName:@"niujinfeng"];
+//    [NSDictionary njf_clearDictWithName:@"niujinfeng"];
     [NSDictionary njf_enumerateKeysAndObjectsName:@"niujinfeng" block:^(NSString * _Nonnull key, NSString * _Nonnull value, BOOL * _Nonnull stop) {
         NSLog(@"存储的字典数据为%@:%@",key,value);
     }];

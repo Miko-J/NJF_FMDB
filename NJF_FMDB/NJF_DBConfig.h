@@ -9,10 +9,18 @@
 #ifndef NJF_DBConfig_h
 #define NJF_DBConfig_h
 
-#define njf_primaryKey @"njf_id"
+static NSString *njf_primaryKey = @"njf_id";
+static NSString *NJF = @"NJF_";
+static NSString *njf_createTimeKey = @"njf_createTime";
+static NSString *njf_updateTimeKey = @"njf_updateTime";
+static NSString *njf_tableNameKey = @"njf_tableName";
+
 #define njf_complete_B void(^_Nullable)(BOOL isSuccess)
 #define njf_complete_A void(^_Nullable)(NSArray *_Nullable array)
 
+#define njf_ignoreKeysSelector NSSelectorFromString(@"njf_ignoreKeys")
+#define njf_uniqueKeysSelector NSSelectorFromString(@"njf_uniqueKeys")
+#define njf_unionPrimaryKeysSelector NSSelectorFromString(@"njf_unionPrimaryKeys")
 /**
  自定义数据库名称.
  */
@@ -35,4 +43,10 @@ typedef NS_ENUM(NSInteger,njf_changeState){//数据改变状态
     njf_drop//删表
 };
 
+typedef NS_ENUM(NSInteger,njf_getModelInfoType){//过滤数据类型
+    njf_ModelInfoInsert,//插入过滤
+    njf_ModelInfoSingleUpdate,//单条更新过滤
+    njf_ModelInfoArrayUpdate,//批量更新过滤
+    njf_ModelInfoNone//无过滤
+};
 #endif /* NJF_DBConfig_h */

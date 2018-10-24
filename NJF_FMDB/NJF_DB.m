@@ -10,6 +10,8 @@
 #import "FMDB.h"
 #import "NJF_DBTool.h"
 #import "NSObject+NJF_ObjModel.h"
+#import "NJF_DBConfig.h"
+#import "NSCache+NJF_Cache.h"
 /**
  默认数据库名称
  */
@@ -138,6 +140,7 @@ static NJF_DB *njfDB = nil;
  */
 - (void)creatTableWithTableName:(NSString *)name
                            keys:(NSArray <NSString *> *_Nonnull)keys
+               unionPrimaryKeys:(NSArray *_Nullable)unionPrimaryKeys
                      uniqueKeys:(NSArray *_Nullable)uniqueKeys
                        complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
@@ -168,9 +171,18 @@ static NJF_DB *njfDB = nil;
                     [sql appendString:[NJF_DBTool keyType:keys[i]]];
                 }
             }
-            
             if (i == (keys.count - 1)) {
-                [sql appendString:@");"];
+                if(unionPrimaryKeys.count){
+                    [sql appendString:@",primary key ("];
+                    [unionPrimaryKeys enumerateObjectsUsingBlock:^(id  _Nonnull unionKey, NSUInteger idx, BOOL * _Nonnull stop) {
+                        if(idx == 0){
+                            [sql appendString:njf_sqlKey(unionKey)];
+                        }else{
+                            [sql appendFormat:@",%@",njf_sqlKey(unionKey)];
+                        }
+                    }];
+                    [sql appendString:@")"];
+                }
             }else{
                 [sql appendString:@","];
             }
@@ -314,7 +326,7 @@ static NJF_DB *njfDB = nil;
         [self isExistWithTableName:name complete:^(BOOL isSuccess) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!isSuccess) {//创建表
-                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] uniqueKeys:nil complete:nil];
+                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"param*@\"NSString\"",@"index*i"] unionPrimaryKeys:nil uniqueKeys:nil complete:nil];
             }
         }];
         //获取表中有多少数据
@@ -588,7 +600,7 @@ static NJF_DB *njfDB = nil;
         [self isExistWithTableName:name complete:^(BOOL isSuccess) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if (!isSuccess) {
-                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"key*@\"NSString\"",@"value*@\"NSString\""] uniqueKeys:@[@"key"] complete:nil];
+                [strongSelf creatTableWithTableName:name keys:@[[NSString stringWithFormat:@"%@*i",njf_primaryKey],@"key*@\"NSString\"",@"value*@\"NSString\""] unionPrimaryKeys:nil uniqueKeys:@[@"key"] complete:nil];
             }
         }];
         __block NSInteger num = 0;
@@ -717,4 +729,304 @@ static NJF_DB *njfDB = nil;
     dispatch_semaphore_signal(self.semaphore);
 }
 
+
+- (void)njf_saveObjWithName:(NSString *const _Nonnull)name
+                        obj:(id _Nonnull)obj
+                   complete:(njf_complete_B)complete{
+    NSAssert(name, @"表名不能为空");
+    NSAssert(obj, @"存储的对象不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        //创建表
+        [self ifNotExistCreateTableWithName:name obj:obj];
+        [self insertWithName:name Obj:obj ignoreKeys:[NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[obj class]] complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)insertWithName:(NSString *const _Nonnull)name
+                   Obj:(id)obj
+            ignoreKeys:(NSArray *_Nonnull)ignoreKeys
+              complete:(njf_complete_B)complete{
+    //获取要写入的字典数组数据
+    NSDictionary *dict = [self getDictWithObject:obj ignoredKeys:ignoreKeys filtModelInfoType:njf_ModelInfoInsert];
+    //自动判断是否有字段改变,自动刷新数据库.
+    
+}
+
+/**
+ 判断类属性是否有改变,智能刷新.
+ */
+-(void)ifIvarChangeWithName:(NSString *_Nonnull)name
+                     object:(id)object
+                ignoredKeys:(NSArray*)ignoredkeys{
+    //获取缓存的属性信息
+    NSCache* cache = [NSCache njf_cache];
+    NSString *tableName = [object valueForKey:njf_tableNameKey];
+    tableName = tableName.length ? tableName : NSStringFromClass([object class]);
+    NSString* cacheKey = [NSString stringWithFormat:@"%@_IvarChangeState",tableName];
+    id IvarChangeState = [cache objectForKey:cacheKey];
+    if(IvarChangeState){
+        return;
+    }else{
+        [cache setObject:@(YES) forKey:cacheKey];
+    }
+    
+    @autoreleasepool {
+        NSMutableArray* newKeys = [NSMutableArray array];
+        NSMutableArray* sqlKeys = [NSMutableArray array];
+        [self executeDB:^(FMDatabase * _Nonnull db) {
+            NSString* SQL = [NSString stringWithFormat:@"select sql from sqlite_master where tbl_name='%@' and type='table';",name];
+            NSMutableArray* tempArrayM = [NSMutableArray array];
+            //获取表格所有列名.
+            [db executeStatements:SQL withResultBlock:^int(NSDictionary *resultsDictionary) {
+                NSString* allName = [resultsDictionary.allValues lastObject];
+                allName = [allName stringByReplacingOccurrencesOfString:@"\"" withString:@""];
+                NSRange range1 = [allName rangeOfString:@"("];
+                allName = [allName substringFromIndex:range1.location+1];
+                NSRange range2 = [allName rangeOfString:@")"];
+                allName = [allName substringToIndex:range2.location];
+                NSArray* sqlNames = [allName componentsSeparatedByString:@","];
+                
+                for(NSString* sqlName in sqlNames){
+                    NSString* columnName = [[sqlName componentsSeparatedByString:@" "] firstObject];
+                    [tempArrayM addObject:columnName];
+                }
+                return 0;
+            }];
+            NSArray* columNames = tempArrayM.count?tempArrayM:nil;
+            NSArray* keyAndtypes = [NJF_DBTool getClassIvarList:[object class] Object:object onlyKey:NO];
+            for(NSString* keyAndtype in keyAndtypes){
+                NSString* key = [[keyAndtype componentsSeparatedByString:@"*"] firstObject];
+                if(ignoredkeys && [ignoredkeys containsObject:key])continue;
+                key = [NSString stringWithFormat:@"%@%@",NJF,key];
+                if (![columNames containsObject:key]) {
+                    [newKeys addObject:keyAndtype];
+                }
+            }
+            NSMutableArray* keys = [NSMutableArray arrayWithArray:[NJF_DBTool getClassIvarList:[object class] Object:nil onlyKey:YES]];
+            if (ignoredkeys) {
+                [keys removeObjectsInArray:ignoredkeys];
+            }
+            [columNames enumerateObjectsUsingBlock:^(NSString* _Nonnull columName, NSUInteger idx, BOOL * _Nonnull stop) {
+                NSString* propertyName = [columName stringByReplacingOccurrencesOfString:NJF withString:@""];
+                if(![keys containsObject:propertyName]){
+                    [sqlKeys addObject:columName];
+                }
+            }];
+            
+        }];
+        if((sqlKeys.count==0) && (newKeys.count>0)){
+            //此处只是增加了新的列.
+            for(NSString* key in newKeys){
+                //添加新字段
+                [self addTable:tableName key:key complete:^(BOOL isSuccess){}];
+            }
+        }else if(sqlKeys.count>0){
+            //字段发生改变,减少或名称变化,实行刷新数据库.
+            NSMutableArray* newTableKeys = [[NSMutableArray alloc] initWithArray:[NJF_DBTool getClassIvarList:[object class] Object:nil onlyKey:NO]];
+            NSMutableArray* tempIgnoreKeys = [[NSMutableArray alloc] initWithArray:ignoredkeys];
+            for(int i=0;i<newTableKeys.count;i++){
+                NSString* key = [[newTableKeys[i] componentsSeparatedByString:@"*"] firstObject];
+                if([tempIgnoreKeys containsObject:key]) {
+                    [newTableKeys removeObject:newTableKeys[i]];
+                    [tempIgnoreKeys removeObject:key];
+                    i--;
+                }
+                if(tempIgnoreKeys.count == 0){
+                    break;
+                }
+            }
+            [self refreshQueueTable:tableName class:[object class] keys:newTableKeys complete:nil];
+        }else;
+    }
+}
+
+- (void)refreshQueueTable:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla keys:(NSArray* const _Nonnull)keys keyDict:(NSDictionary* const _Nonnull)keyDict complete:(bg_complete_I)complete{
+    NSAssert(tablename,@"表名不能为空!");
+    NSAssert(keyDict,@"变量名影射集合不能为空!");
+    [self isExistWithTableName:tablename complete:^(BOOL isSuccess){
+        if (!isSuccess){
+            NSLog(@"没有数据存在,数据库更新失败!");
+            bg_completeBlock(bg_error);
+            return;
+        }
+    }];
+    //事务操作.
+    NSString* BGTempTable = @"BGTempTable";
+    __block int recordFailCount = 0;
+    [self executeTransation:^BOOL{
+        [self copyA:tablename toB:BGTempTable keyDict:keyDict complete:^(bg_dealState result) {
+            if(result == bg_complete){
+                recordFailCount++;
+            }
+        }];
+        [self dropTable:tablename complete:^(BOOL isSuccess) {
+            if(isSuccess)recordFailCount++;
+        }];
+        [self copyA:BGTempTable toB:tablename class:cla keys:keys complete:^(bg_dealState result) {
+            if(result == bg_complete){
+                recordFailCount++;
+            }
+        }];
+        [self dropTable:BGTempTable complete:^(BOOL isSuccess) {
+            if(isSuccess)recordFailCount++;
+        }];
+        if (recordFailCount != 4) {
+            bg_debug(@"发生错误，更新数据库失败!");
+        }
+        return recordFailCount==4;
+    }];
+    //回调结果.
+    if(recordFailCount==0){
+        bg_completeBlock(bg_error);
+    }else if (recordFailCount>0&&recordFailCount<4){
+        bg_completeBlock(bg_incomplete);
+    }else{
+        bg_completeBlock(bg_complete);
+    }
+}
+
+/**
+ 动态添加表字段.
+ */
+-(void)addTable:(NSString* _Nonnull)name key:(NSString* _Nonnull)key complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空!");
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSString* SQL = [NSString stringWithFormat:@"alter table %@ add %@;",name,[NJF_DBTool keyType:key]];
+        result = [db executeUpdate:SQL];
+    }];
+    if(complete) complete(result);
+}
+
+/**
+ 根据对象获取要更新或插入的字典.
+ */
+- (NSDictionary *_Nonnull)getDictWithObject:(id _Nonnull)object ignoredKeys:(NSArray* const _Nullable)ignoredKeys filtModelInfoType:(njf_getModelInfoType)filtModelInfoType{
+    //获取存到数据库的数据.
+    NSMutableDictionary* valueDict = [self getDictWithObject:object ignoredKeys:ignoredKeys];
+    if (filtModelInfoType == njf_ModelInfoSingleUpdate){//单条更新操作时,移除 创建时间和主键 字段不做更新
+        [valueDict removeObjectForKey:njf_sqlKey(njf_createTimeKey)];
+        //判断是否定义了“联合主键”.
+        NSArray* unionPrimaryKeys = [NJF_DBTool executeSelector:njf_unionPrimaryKeysSelector forClass:[object class]];
+        NSString* njf_id = njf_sqlKey(njf_primaryKey);
+        if(unionPrimaryKeys.count == 0){
+            if([valueDict.allKeys containsObject:njf_id]) {
+                [valueDict removeObjectForKey:njf_id];
+            }
+        }else{
+            if(![valueDict.allKeys containsObject:njf_id]) {
+                valueDict[njf_id] = @(1);//没有就预备放入
+            }
+        }
+    }else if(filtModelInfoType == njf_ModelInfoInsert){//插入时要移除主键,不然会出错.
+        //判断是否定义了“联合主键”.
+        NSArray* unionPrimaryKeys = [NJF_DBTool executeSelector:njf_unionPrimaryKeysSelector forClass:[object class]];
+        NSString* njf_id = njf_sqlKey(njf_primaryKey);
+        if(unionPrimaryKeys.count == 0){
+            if([valueDict.allKeys containsObject:njf_id]) {
+                [valueDict removeObjectForKey:njf_id];
+            }
+        }else{
+            if(![valueDict.allKeys containsObject:njf_id]) {
+                valueDict[njf_id] = @(1);//没有就预备放入
+            }
+        }
+    }else if(filtModelInfoType == njf_ModelInfoArrayUpdate){//批量更新操作时,移除 创建时间 字段不做更新
+        [valueDict removeObjectForKey:njf_sqlKey(njf_createTimeKey)];
+    }else;
+    //#warning 压缩深层嵌套模型数据量使用
+    //    NSString* depth_model_conditions = @"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\";
+    //    [valueDict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+    //        if([obj isKindOfClass:[NSString class]] && [obj containsString:depth_model_conditions]){
+    //            if ([obj containsString:BGModel]) {
+    //                obj = [obj stringByReplacingOccurrencesOfString:depth_model_conditions withString:@"^*"];
+    //                obj = [obj stringByReplacingOccurrencesOfString:@"^*^*^*^*^*^*^*^*^*^*" withString:@"$#"];
+    //                obj = [obj stringByReplacingOccurrencesOfString:@"$#$#$#$#$#" withString:@"~-"];
+    //                valueDict[key] = [obj stringByReplacingOccurrencesOfString:@"~-~-~-" withString:@"+&"];
+    //            }
+    //        }
+    //    }];
+    return valueDict;
+}
+
+/**
+ 获取存储数据
+ */
+- (NSMutableDictionary *)getDictWithObject:(id)object ignoredKeys:(NSArray* const)ignoredKeys{
+    NSMutableDictionary* modelInfoDictM = [NSMutableDictionary dictionary];
+    NSArray* keyAndTypes = [NJF_DBTool getClassIvarList:[object class] Object:object onlyKey:NO];
+    for(NSString* keyAndType in keyAndTypes){
+        NSArray* keyTypes = [keyAndType componentsSeparatedByString:@"*"];
+        NSString* propertyName = keyTypes[0];
+        NSString* propertyType = keyTypes[1];
+        if(![ignoredKeys containsObject:propertyName]){
+            //数据库表列名(NJF_ + 属性名),加NJF_是为了防止和数据库关键字发生冲突.
+            NSString* sqlColumnName = [NSString stringWithFormat:@"%@%@",NJF,propertyName];
+            id propertyValue;
+            id sqlValue;
+            //crateTime和updateTime两个额外字段单独处理.
+            if([propertyName isEqualToString:njf_createTimeKey] ||
+               [propertyName isEqualToString:njf_updateTimeKey]){
+                propertyValue = [NJF_DBTool stringWithDate:[NSDate new]];
+            }else{
+                propertyValue = [object valueForKey:propertyName];
+            }
+            if(propertyValue){
+                //列值
+                sqlValue = [NJF_DBTool getSqlValue:propertyValue type:propertyType encode:YES];
+                modelInfoDictM[sqlColumnName] = sqlValue;
+            }
+        }
+    }
+    NSAssert(modelInfoDictM.allKeys.count,@"对象变量数据为空,不能存储!");
+    return modelInfoDictM;
+}
+
+- (BOOL)ifNotExistCreateTableWithName:(NSString *const _Nonnull)name obj:(id _Nonnull)obj{
+    //获取要忽略的字段
+    NSArray *ignoreKeys = [NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[obj class]];
+    //获取"唯一约束"字段名
+    NSArray *uniqueKeys = [NJF_DBTool executeSelector:njf_uniqueKeysSelector forClass:[obj class]];
+    //获取“联合主键”字段名
+    NSArray *unionPrimaryKeys = [NJF_DBTool executeSelector:njf_unionPrimaryKeysSelector forClass:[obj class]];
+    __block BOOL result;
+    [self isExistWithTableName:name complete:^(BOOL isSuccess) {
+        if (!isSuccess){//如果不存在就新建
+            NSArray* createKeys = [self njf_filtCreateKeys:[NJF_DBTool getClassIvarList:obj Object:obj onlyKey:NO] ignoredkeys:ignoreKeys];
+            [self creatTableWithTableName:name keys:createKeys unionPrimaryKeys:unionPrimaryKeys uniqueKeys:uniqueKeys complete:^(BOOL isSuccess) {
+                result = isSuccess;
+            }];
+        }
+    }];
+    return result;
+}
+
+/**
+ 过滤建表的key.
+ */
+- (NSArray *)njf_filtCreateKeys:(NSArray *)njf_createkeys ignoredkeys:(NSArray *)njf_ignoredkeys{
+    NSMutableArray* createKeys = [NSMutableArray arrayWithArray:njf_createkeys];
+    NSMutableArray* ignoredKeys = [NSMutableArray arrayWithArray:njf_ignoredkeys];
+    //判断是否有需要忽略的key集合.
+    if (ignoredKeys.count){
+        for(__block int i=0;i<createKeys.count;i++){
+            if(ignoredKeys.count){
+                NSString* createKey = [createKeys[i] componentsSeparatedByString:@"*"][0];
+                [ignoredKeys enumerateObjectsUsingBlock:^(id  _Nonnull ignoreKey, NSUInteger idx, BOOL * _Nonnull stop) {
+                    if([createKey isEqualToString:ignoreKey]){
+                        [createKeys removeObjectAtIndex:i];
+                        [ignoredKeys removeObjectAtIndex:idx];
+                        i--;
+                        *stop = YES;
+                    }
+                }];
+            }else{
+                break;
+            }
+        }
+    }
+    return createKeys;
+}
 @end

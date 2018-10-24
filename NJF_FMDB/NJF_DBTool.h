@@ -24,11 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)keyType:(NSString *)param;
 
 /**
- 根据类属性值和属性类型返回数据库存储的值.
- @value 数值.
- @type 数组value的类型.
- @encode YES:编码 , NO:解码.
+ NSDate转字符串,格式: yyyy-MM-dd HH:mm:ss
  */
++(NSString* _Nonnull)stringWithDate:(NSDate* _Nonnull)date;
 
 /**
   根据类属性值和属性类型返回数据库存储的值.
@@ -46,6 +44,18 @@ NS_ASSUME_NONNULL_BEGIN
  抽取封装条件数组处理函数.
  */
 +(NSArray *_Nonnull)where:(NSArray *_Nonnull)where;
+
+/**
+ 判断并执行类方法.
+ */
++ (id _Nonnull)executeSelector:(SEL)selector
+                      forClass:(__unsafe_unretained Class)cla;
+
+/**
+ 根据类获取变量名列表
+ @onlyKey YES:紧紧返回key,NO:在key后面添加type.
+ */
++ (NSArray *)getClassIvarList:(__unsafe_unretained Class)cla Object:(_Nullable id)object onlyKey:(BOOL)onlyKey;
 
 @end
 

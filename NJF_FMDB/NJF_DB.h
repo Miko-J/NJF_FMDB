@@ -122,4 +122,15 @@
  */
 - (void)njf_clearDictWithName:(NSString *const _Nonnull)name
                      complete:(njf_complete_B)complete;
+
+/**************************对象操作*********************/
+/**
+ 保存一个对象
+ @param name 表名
+ @param obj 要保存的对象
+ @param complete 回调
+ */
+- (void)njf_saveObjWithName:(NSString *const _Nonnull)name
+                    obj:(id _Nonnull)obj
+                   complete:(njf_complete_B)complete;
 @end

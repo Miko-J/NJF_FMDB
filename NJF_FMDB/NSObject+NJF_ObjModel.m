@@ -8,6 +8,8 @@
 
 #import "NSObject+NJF_ObjModel.h"
 #import <objc/runtime.h>
+#import "NJF_DB.h"
+#import "NJF_DBTool.h"
 
 @implementation NSObject (NJF_ObjModel)
 
@@ -27,7 +29,6 @@
     return objc_getAssociatedObject(self, _cmd);
 }
 
-
 - (void)setNjf_updateTime:(NSString *)njf_updateTime{
     objc_setAssociatedObject(self, @selector(njf_updateTime), njf_updateTime, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
@@ -42,5 +43,15 @@
 
 - (NSString *)njf_tableName{
     return objc_getAssociatedObject(self, _cmd);
+}
+
+- (BOOL)njf_saveObjWithName:(NSString *const _Nonnull)name
+                    obj:(id _Nonnull)obj{
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_saveObjWithName:name obj:obj complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] njf_closeDB];
+    return result;
 }
 @end

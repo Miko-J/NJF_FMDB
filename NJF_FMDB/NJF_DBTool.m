@@ -16,10 +16,6 @@
 static NSString *sqlText = @"text";         //数据库的字符类型
 static NSString *sqlReal = @"real";         //数据库的浮点类型
 static NSString *sqlInteger = @"integer";   //数据库的整数类型
-static NSString *NJF = @"NJF_";
-static NSString *njf_tableNameKey = @"njf_tableName";
-static NSString *njf_createTimeKey = @"njf_createTime";
-static NSString *njf_updateTimeKey = @"njf_updateTime";
 
 static NSString *NJFValue = @"NJFValue";
 static NSString *NJFData = @"NJFData";
@@ -42,8 +38,6 @@ static NSString *njf_typeHead__UI = @"@\"__UI";
 typedef void (^NJFClassesEnumeration)(Class c, BOOL *stop);
 static NSSet *foundationClasses_;
 
-#define njf_ignoreKeysSelector NSSelectorFromString(@"njf_ignoreKeys")
-
 @implementation NJF_DBTool
 
 /**
@@ -65,14 +59,14 @@ BOOL njf_deleteSqlite(NSString *_Nonnull sqliteName){
 /**
  封装处理传入数据库的key和value.
  */
-NSString* njf_sqlKey(NSString* key){
+NSString *njf_sqlKey(NSString* key){
     return [NSString stringWithFormat:@"%@%@",NJF,key];
 }
 
 /**
  判断是不是 "唯一约束" 字段.
  */
-+(BOOL)isUniqueKey:(NSString* _Nonnull)uniqueKey
++ (BOOL)isUniqueKey:(NSString* _Nonnull)uniqueKey
               with:(NSString* _Nonnull)param{
     NSArray* array = [param componentsSeparatedByString:@"*"];
     NSString* key = array[0];
@@ -82,7 +76,7 @@ NSString* njf_sqlKey(NSString* key){
 /**
  抽取封装条件数组处理函数
  */
-+(NSArray*)where:(NSArray*)where{
++ (NSArray *)where:(NSArray*)where{
     NSMutableArray* results = [NSMutableArray array];
     NSMutableString* SQL = [NSMutableString string];
     if(!(where.count%3)){
@@ -125,7 +119,7 @@ NSString* njf_sqlKey(NSString* key){
     return [NSString stringWithFormat:@"%@ %@",[NSString stringWithFormat:@"%@%@",NJF,key],sqlType];
 }
 
-+(NSString*)getSqlType:(NSString*)type{
++ (NSString *)getSqlType:(NSString*)type{
     if([type isEqualToString:@"i"]||[type isEqualToString:@"I"]||
        [type isEqualToString:@"s"]||[type isEqualToString:@"S"]||
        [type isEqualToString:@"q"]||[type isEqualToString:@"Q"]||
@@ -180,7 +174,7 @@ NSString* njf_sqlKey(NSString* key){
  根据类获取变量名列表
  @onlyKey YES:紧紧返回key,NO:在key后面添加type.
  */
-+(NSArray*)getClassIvarList:(__unsafe_unretained Class)cla Object:(_Nullable id)object onlyKey:(BOOL)onlyKey{
++ (NSArray *)getClassIvarList:(__unsafe_unretained Class)cla Object:(_Nullable id)object onlyKey:(BOOL)onlyKey{
     //获取缓存的属性信息
     NSCache* cache = [NSCache njf_cache];
     NSString* cacheKey;
@@ -189,7 +183,6 @@ NSString* njf_sqlKey(NSString* key){
     if(cachekeys){
         return cachekeys;
     }
-    
     NSMutableArray* keys = [NSMutableArray array];
     if(onlyKey){
         [keys addObject:njf_primaryKey];
@@ -276,7 +269,7 @@ NSString* njf_sqlKey(NSString* key){
 /**
  存储转换用的字典转化成对象处理函数.
  */
-+(id)objectFromJsonStringWithTableName:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla valueDict:(NSDictionary*)valueDict{
++ (id)objectFromJsonStringWithTableName:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla valueDict:(NSDictionary*)valueDict{
     id object = [cla new];
     NSMutableArray* valueDictKeys = [NSMutableArray arrayWithArray:valueDict.allKeys];
     NSMutableArray* keyAndTypes = [NSMutableArray arrayWithArray:[self getClassIvarList:cla Object:nil onlyKey:NO]];
@@ -306,7 +299,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //根据NSDictionary转换从数据库读取回来的数组数据
-+(id)valueForArrayRead:(NSDictionary*)dictionary{
++ (id)valueForArrayRead:(NSDictionary*)dictionary{
     NSString* key = dictionary.allKeys.firstObject;
     if ([key isEqualToString:NJFValue]) {
         return dictionary[key];
@@ -330,7 +323,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //根据NSDictionary转换从数据库读取回来的字典数据
-+(id)valueForDictionaryRead:(NSDictionary*)dictDest{
++ (id)valueForDictionaryRead:(NSDictionary*)dictDest{
     NSString* keyDest = dictDest.allKeys.firstObject;
     if([keyDest isEqualToString:NJFValue]){
         return dictDest[keyDest];
@@ -379,7 +372,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //NSMapTable转json字符串.
-+(NSString*)jsonStringWithMapTable:(NSMapTable*)mapTable{
++ (NSString *)jsonStringWithMapTable:(NSMapTable*)mapTable{
     NSMutableDictionary* dictM = [NSMutableDictionary dictionary];
     NSArray* objects = mapTable.objectEnumerator.allObjects;
     NSArray* keys = mapTable.keyEnumerator.allObjects;
@@ -392,7 +385,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //NSHashTable转json字符串.
-+(NSString*)jsonStringWithNSHashTable:(NSHashTable*)hashTable{
++ (NSString *)jsonStringWithNSHashTable:(NSHashTable*)hashTable{
     NSMutableArray* arrM = [NSMutableArray array];
     NSArray* values = hashTable.objectEnumerator.allObjects;
     for(id value in values){
@@ -431,7 +424,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //json字符串转NSDictionary
-+(NSDictionary*)dictionaryFromJsonString:(NSString*)jsonString{
++ (NSDictionary *)dictionaryFromJsonString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
     
     if([jsonString containsString:NJFModel] || [jsonString containsString:NJFData]){
@@ -448,7 +441,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //json字符串转NSMapTable
-+(NSMapTable*)mapTableFromJsonString:(NSString*)jsonString{
++ (NSMapTable *)mapTableFromJsonString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
     NSDictionary* dict = [self jsonWtihString:jsonString];
     NSMapTable* mapTable = [NSMapTable new];
@@ -460,7 +453,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //json字符串转NSHashTable
-+(NSHashTable*)hashTableFromJsonString:(NSString*)jsonString{
++ (NSHashTable *)hashTableFromJsonString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
     NSArray* arr = [self jsonWtihString:jsonString];
     NSHashTable* hashTable = [NSHashTable new];
@@ -472,7 +465,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //json字符串转NSDate
-+(NSDate*)dateFromString:(NSString*)jsonString{
++ (NSDate *)dateFromString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
     NSDateFormatter *formatter = [NSDateFormatter new];
     formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
@@ -481,7 +474,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //NSDate转字符串,格式: yyyy-MM-dd HH:mm:ss
-+(NSString*)stringWithDate:(NSDate*)date{
++ (NSString *)stringWithDate:(NSDate*)date{
     NSDateFormatter* formatter = [NSDateFormatter new];
     formatter.dateFormat = @"yyyy-MM-dd HH:mm:ss.SSS";
     return [formatter stringFromDate:date];
@@ -490,7 +483,7 @@ NSString* njf_sqlKey(NSString* key){
 /**
  判断类是否实现了某个类方法.
  */
-+(id)executeSelector:(SEL)selector forClass:(Class)cla{
++ (id)executeSelector:(SEL)selector forClass:(Class)cla{
     id obj = nil;
     if([cla respondsToSelector:selector]){
 #pragma clang diagnostic push
@@ -502,7 +495,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //对象转json字符
-+(NSString *)jsonStringWithObject:(id)object{
++ (NSString *)jsonStringWithObject:(id)object{
     NSMutableDictionary* keyValueDict = [NSMutableDictionary dictionary];
     NSArray* keyAndTypes = [self getClassIvarList:[object class] Object:object onlyKey:NO];
     //忽略属性
@@ -524,7 +517,7 @@ NSString* njf_sqlKey(NSString* key){
 }
 
 //跟value和数据类型type 和编解码标志 返回编码插入数据库的值,或解码数据库的值.
-+(id _Nonnull)getSqlValue:(id _Nonnull)value type:(NSString* _Nonnull)type encode:(BOOL)encode{
++ (id _Nonnull)getSqlValue:(id _Nonnull)value type:(NSString* _Nonnull)type encode:(BOOL)encode{
     if (!value || [value isKindOfClass:[NSNull class]]) return nil;
     if(([type hasPrefix:njf_typeHead_NS]||[type hasPrefix:njf_typeHead__NS])&&[type containsString:@"String"]){
         if([type containsString:@"AttributedString"]){//处理富文本.

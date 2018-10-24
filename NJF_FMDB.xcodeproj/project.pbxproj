@@ -154,8 +154,6 @@
 			isa = PBXGroup;
 			children = (
 				88D91681216BAE03008A4C2A /* fmdb */,
-				88D9164F216BACE2008A4C2A /* AppDelegate.h */,
-				88D91650216BACE2008A4C2A /* AppDelegate.m */,
 				8838E8C5216F2CF7006CC5F1 /* NJF_DBConfig.h */,
 				8838E8C1216F2C04006CC5F1 /* NJF_DBTool.h */,
 				8838E8C2216F2C04006CC5F1 /* NJF_DBTool.m */,
@@ -174,6 +172,8 @@
 				88D9165A216BACE3008A4C2A /* LaunchScreen.storyboard */,
 				88D9165D216BACE3008A4C2A /* Info.plist */,
 				88D9165E216BACE3008A4C2A /* main.m */,
+				88D9164F216BACE2008A4C2A /* AppDelegate.h */,
+				88D91650216BACE2008A4C2A /* AppDelegate.m */,
 				8838E8B9216E0687006CC5F1 /* RootViewController.h */,
 				8838E8BA216E0687006CC5F1 /* RootViewController.m */,
 				8838E8CD216F4900006CC5F1 /* NJF_People.h */,
