@@ -26,25 +26,31 @@
 /**
  关闭数据库
  */
-- (void)closeDB;
+- (void)njf_closeDB;
+
+/**
+ 删除数据库
+ */
+- (void)njf_deleteSqlite:(NSString *_Nonnull)sqliteName
+            complete:(njf_complete_B)complete;
 /**************************数组操作*********************/
 /**
   直接存储数组
  */
-- (void)saveArray:(NSArray *_Nonnull)array
+- (void)njf_saveArray:(NSArray *_Nonnull)array
              name:(NSString *_Nonnull)name
          complete:(njf_complete_B)complete;
 
 /**
  读取数组
  */
-- (void)querryArrayWithName:(NSString *_Nonnull)name
+- (void)njf_querryArrayWithName:(NSString *_Nonnull)name
                    complete:(njf_complete_A)complete;
 
 /**
  更新数组元素
  */
-- (void)updateobjWithName:(NSString *_Nonnull)name
+- (void)njf_updateobjWithName:(NSString *_Nonnull)name
                       obj:(id _Nonnull)obj
                     index:(NSInteger)index
                  complete:(njf_complete_B)complete;
@@ -52,28 +58,28 @@
 /**
  删除数组某个位置上的元素
  */
-- (void)deleteObjWithName:(NSString *_Nonnull)name
+- (void)njf_deleteObjWithName:(NSString *_Nonnull)name
                     index:(NSInteger)index
                  complete:(njf_complete_B)complete;
 
 /**
  查询数组某个位置上的元素
  */
-- (void)querryWithName:(NSString *_Nonnull)name
+- (void)njf_querryWithName:(NSString *_Nonnull)name
                  index:(NSInteger)index
                  value:(void(^)(id value))value;
 
 /**
   删除表中的所有数据
  */
-- (void)dropSafeTable:(NSString *_Nonnull)name
+- (void)njf_dropSafeTable:(NSString *_Nonnull)name
              complete:(njf_complete_B)complete;
 
 /**************************字典操作*********************/
 /**
  直接存储字典
  */
-- (void)saveDict:(NSDictionary *_Nonnull)dict
+- (void)njf_saveDict:(NSDictionary *_Nonnull)dict
             name:(NSString *_Nonnull)name
         complete:(njf_complete_B)complete;
 

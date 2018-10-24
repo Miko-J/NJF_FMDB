@@ -55,6 +55,13 @@ void njf_setSqliteName(NSString*_Nonnull sqliteName){
     }
 }
 
+BOOL njf_deleteSqlite(NSString *_Nonnull sqliteName){
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_deleteSqlite:sqliteName complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    return result;
+}
 /**
  封装处理传入数据库的key和value.
  */

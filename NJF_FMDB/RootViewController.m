@@ -10,6 +10,7 @@
 #import "NJF_People.h"
 #import "NSArray+NJF_ArrModel.h"
 #import "NSDictionary+NJF_DicModel.h"
+#import "NJF_DBConfig.h"
 
 @interface RootViewController ()
 - (IBAction)creatDB:(id)sender;
@@ -25,7 +26,11 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor whiteColor];
-    [self testDict];
+    
+    //自定义数据库名称，默认为NJF_FMDB.db
+//    njf_setSqliteName(@"xiaomingFMDB");
+    //删除数据库
+//    njf_deleteSqlite(@"xiaomingFMDB");
 }
 
 - (void)testDict{
@@ -53,27 +58,27 @@
 
 - (void)testArray{
     //存储数组
-        NSArray *arr = @[@"哈哈",@"9527",@"3.5"];
-        NSMutableArray *arrM = [NSMutableArray arrayWithArray:arr];
-        NJF_People *people = [[NJF_People alloc] init];
-        people.name = @"小明";
-        people.age = @(25);
-        people.height = 178.86;
-        [arrM addObject:people];
-        [arrM njf_saveArrWithName:@"niujinfeng"];
+//        NSArray *arr = @[@"哈哈",@"9527",@"3.5"];
+//        NSMutableArray *arrM = [NSMutableArray arrayWithArray:arr];
+//        NJF_People *people = [[NJF_People alloc] init];
+//        people.name = @"小明";
+//        people.age = @(25);
+//        people.height = 178.86;
+//        [arrM addObject:people];
+//        [arrM njf_saveArrWithName:@"niujinfeng"];
     //插入数据
-    //    [NSArray njf_addObjWithName:@"niujinfeng" obj:@[@"双击666",@"帅是一种态度"]];
-    //    [NSArray njf_addObjWithName:@"niujinfeng" obj:@"今天天气很冷"];
+//        [NSArray njf_addObjWithName:@"niujinfeng" obj:@[@"双击666",@"帅是一种态度"]];
+//        [NSArray njf_addObjWithName:@"niujinfeng" obj:@"今天天气很冷"];
     //更新数据
-    //    [NSArray njf_updateObjWithName:@"niujinfeng" obj:@"9875" index:1];
+//        [NSArray njf_updateObjWithName:@"niujinfeng" obj:@"9875" index:1];
     //删除数据
-    //    [NSArray njf_deleteObjWithName:@"niujinfeng" index:1];
+//        [NSArray njf_deleteObjWithName:@"niujinfeng" index:1];
     //获取表名下面某个索引的数据
-    //    id value = [NSArray nif_ObjWithName:@"niujinfeng" index:1];
-    //    NSLog(@"%@",value);
-    [NSArray njf_clearArrayWithName:@"niujinfeng"];
-    NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];
-    NSLog(@"查询得到的数组中的数据%@",array);
+//        id value = [NSArray nif_ObjWithName:@"niujinfeng" index:1];
+//        NSLog(@"%@",value);
+//    [NSArray njf_clearArrayWithName:@"niujinfeng"];
+//    NSArray *array = [NSArray njf_arrayWithName:@"niujinfeng"];
+//    NSLog(@"查询得到的数组中的数据%@",array);
 }
 
 //创建数据库

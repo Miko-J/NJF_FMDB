@@ -14,10 +14,10 @@
 - (BOOL)njf_saveDictWithName:(NSString *const _Nonnull)name{
     if ([self isKindOfClass:[NSDictionary class]]) {
         __block BOOL result;
-        [[NJF_DB shareManager] saveDict:self name:name complete:^(BOOL isSuccess) {
+        [[NJF_DB shareManager] njf_saveDict:self name:name complete:^(BOOL isSuccess) {
             result = isSuccess;
         }];
-        [[NJF_DB shareManager] closeDB];
+        [[NJF_DB shareManager] njf_closeDB];
         return result;
     }else{
         return NO;
@@ -29,7 +29,7 @@
     [[NJF_DB shareManager] njf_enumerateKeysAndObjectsName:name block:block complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 
@@ -40,7 +40,7 @@
     [[NJF_DB shareManager] njf_setValueWithName:name value:value key:key complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 
@@ -51,7 +51,7 @@
     [[NJF_DB shareManager] njf_updateValueWithName:name value:value key:key complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 
@@ -61,7 +61,7 @@
     [[NJF_DB shareManager] njf_valueForKeyWithName:name key:key valueBlock:^(id  _Nonnull value) {
         result = value;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 
@@ -71,7 +71,7 @@
     [[NJF_DB shareManager] njf_deleteValueForKeyWithName:name key:key complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 
@@ -80,7 +80,7 @@
     [[NJF_DB shareManager] njf_clearDictWithName:name complete:^(BOOL isSuccess) {
         result = isSuccess;
     }];
-    [[NJF_DB shareManager] closeDB];
+    [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
 @end

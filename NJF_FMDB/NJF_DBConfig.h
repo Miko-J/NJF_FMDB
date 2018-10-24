@@ -12,7 +12,16 @@
 #define njf_primaryKey @"njf_id"
 #define njf_complete_B void(^_Nullable)(BOOL isSuccess)
 #define njf_complete_A void(^_Nullable)(NSArray *_Nullable array)
-extern void njf_setSqliteName(NSString*_Nonnull sqliteName);
+
+/**
+ 自定义数据库名称.
+ */
+extern void njf_setSqliteName(NSString *_Nonnull sqliteName);
+
+/**
+ 删除数据库文件
+ */
+extern BOOL njf_deleteSqlite(NSString *_Nonnull sqliteName);
 
 /**
  封装处理传入数据库的key和value.

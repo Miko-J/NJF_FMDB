@@ -82,13 +82,24 @@ static NJF_DB *njfDB = nil;
 /**
  关闭数据库
  */
-- (void)closeDB{
+- (void)njf_closeDB{
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     if (_dbQueue) {
         [_dbQueue close];
         _dbQueue = nil;
     }
     dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_deleteSqlite:(NSString *_Nonnull)sqliteName
+                complete:(njf_complete_B)complete{
+    NSString* filePath = CachePath(([NSString stringWithFormat:@"%@.db",sqliteName]));
+    NSFileManager * file_manager = [NSFileManager defaultManager];
+    NSError* error;
+    if ([file_manager fileExistsAtPath:filePath]) {
+        [file_manager removeItemAtPath:filePath error:&error];
+    }
+    if (complete) complete(error==nil);
 }
 
 /**
@@ -292,7 +303,7 @@ static NJF_DB *njfDB = nil;
 /**
  根据唯一标识保存数组
  */
-- (void)saveArray:(NSArray *_Nonnull)array
+- (void)njf_saveArray:(NSArray *_Nonnull)array
              name:(NSString *_Nonnull)name
          complete:(njf_complete_B)complete{
     NSAssert(array && array.count,@"数组不能为空");
@@ -332,7 +343,7 @@ static NJF_DB *njfDB = nil;
 /**
  读取数组某个元素.
  */
-- (void)querryArrayWithName:(NSString *_Nonnull)name
+- (void)njf_querryArrayWithName:(NSString *_Nonnull)name
                    complete:(njf_complete_A)complete{
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     @autoreleasepool {
@@ -388,7 +399,7 @@ static NJF_DB *njfDB = nil;
 /**
  更新数组某个元素.
  */
-- (void)updateobjWithName:(NSString *_Nonnull)name
+- (void)njf_updateobjWithName:(NSString *_Nonnull)name
                       obj:(id _Nonnull)obj
                     index:(NSInteger)index
                  complete:(njf_complete_B)complete{
@@ -443,7 +454,7 @@ static NJF_DB *njfDB = nil;
 /**
  删除数组某个位置上的元素,改变索引
  */
-- (void)deleteObjWithName:(NSString *_Nonnull)name
+- (void)njf_deleteObjWithName:(NSString *_Nonnull)name
                     index:(NSInteger)index
                  complete:(njf_complete_B)complete{
     NSAssert(name, @"表名不能为空");
@@ -517,7 +528,7 @@ static NJF_DB *njfDB = nil;
     if (complete) complete(result);
 }
 
-- (void)querryWithName:(NSString *_Nonnull)name
+- (void)njf_querryWithName:(NSString *_Nonnull)name
                  index:(NSInteger)index
                  value:(void(^)(id value))value{
     NSAssert(name, @"表名不能为空");
@@ -542,7 +553,7 @@ static NJF_DB *njfDB = nil;
 /**
  删除表(线程安全).
  */
-- (void)dropSafeTable:(NSString *_Nonnull)name
+- (void)njf_dropSafeTable:(NSString *_Nonnull)name
              complete:(njf_complete_B)complete{
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     @autoreleasepool {
@@ -567,7 +578,7 @@ static NJF_DB *njfDB = nil;
 }
 
 /*********************字典*******************/
-- (void)saveDict:(NSDictionary *_Nonnull)dict
+- (void)njf_saveDict:(NSDictionary *_Nonnull)dict
             name:(NSString *_Nonnull)name
         complete:(njf_complete_B)complete{
     NSAssert(dict || dict.allKeys.count, @"字典不能为空");
@@ -630,7 +641,7 @@ static NJF_DB *njfDB = nil;
     NSDictionary *dict = @{key:value};
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     @autoreleasepool {
-        [self saveDict:dict name:name complete:complete];
+        [self njf_saveDict:dict name:name complete:complete];
     }
     dispatch_semaphore_signal(self.semaphore);
 }
