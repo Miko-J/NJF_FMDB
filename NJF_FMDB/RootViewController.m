@@ -41,9 +41,14 @@
 //     people.height = 168.23;
 //     [people njf_saveObjWithName:@"xiaoniu" obj:people];
         //条件查询
-    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
-    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
-    NSLog(@"查询到的数组数据为%@",arr);
+//    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
+//    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
+    //按时间查询
+    NSArray *arr = [NJF_People njf_findWithName:@"xiaoniu" dateType:njf_createTime dateTime:@"2018-10-25 10:25"];
+    [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"查询到的数组数据为%@",obj);
+    }];
+    
 }
 
 - (void)testDict{

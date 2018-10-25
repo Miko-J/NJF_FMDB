@@ -57,6 +57,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSArray *)getClassIvarList:(__unsafe_unretained Class)cla Object:(_Nullable id)object onlyKey:(BOOL)onlyKey;
 
+/**
+ 转换从数据库中读取出来的数据.
+ @tableName 表名(即类名).
+ @array 传入要转换的数组数据.
+ */
++ (NSArray *_Nonnull)tansformDataFromSqlDataWithTableName:(NSString *_Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla array:(NSArray* _Nonnull)array;
 @end
 
 NS_ASSUME_NONNULL_END

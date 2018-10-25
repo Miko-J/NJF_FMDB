@@ -62,4 +62,9 @@ typedef NS_ENUM(NSInteger,njf_dealState){//处理状态
     njf_incomplete = 0,//处理不完整
     njf_complete = 1//处理完整
 };
+
+typedef NS_ENUM(NSInteger,njf_dataTimeType){
+    njf_createTime,//存储时间
+    njf_updateTime,//更新时间
+};
 #endif /* NJF_DBConfig_h */

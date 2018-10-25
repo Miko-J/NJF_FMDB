@@ -678,4 +678,31 @@ id njf_sqlValue(id value){
         
     }
 }
+
++ (NSArray *_Nonnull)tansformDataFromSqlDataWithTableName:(NSString *_Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla array:(NSArray* _Nonnull)array{
+    //如果传入的class为空，则直接以字典的形式返回.
+    if(cla == nil){
+        return array;
+    }
+    NSMutableArray* arrM = [NSMutableArray array];
+    for(NSMutableDictionary* dict in array){
+        //#warning 压缩深层嵌套模型数据量使用
+        //        NSString* depth_model_conditions = @"\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\";
+        //        [dict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+        //            if([obj isKindOfClass:[NSString class]] && ([obj containsString:@"+&"]||
+        //               [obj containsString:@"~-"]||[obj containsString:@"$#"]||[obj containsString:@"^*"])){
+        //                if ([obj containsString:BGModel]) {
+        //                    obj = [obj stringByReplacingOccurrencesOfString:@"+&" withString:@"~-~-~-"];
+        //                    obj = [obj stringByReplacingOccurrencesOfString:@"~-" withString:@"$#$#$#$#$#"];
+        //                    obj = [obj stringByReplacingOccurrencesOfString:@"$#" withString:@"^*^*^*^*^*^*^*^*^*^*"];
+        //                    dict[key] = [obj stringByReplacingOccurrencesOfString:@"^*" withString:depth_model_conditions];
+        //                }
+        //            }
+        //        }];
+        id object = [self objectFromJsonStringWithTableName:name class:cla valueDict:dict];
+        [arrM addObject:object];
+    }
+    return arrM;
+}
+
 @end

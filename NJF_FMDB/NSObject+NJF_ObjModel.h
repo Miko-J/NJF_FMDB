@@ -73,6 +73,22 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
                                  where:(NSString *_Nullable)where;
+
+/**
+ 查询某一时间段的数据.(存入时间或更新时间)
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @dateTime 参数格式：
+ 2018 即查询2018年的数据
+ 2018-07 即查询2018年7月的数据
+ 2018-07-19 即查询2018年7月19日的数据
+ 2018-07-19 16 即查询2018年7月19日16时的数据
+ 2018-07-19 16:17 即查询2018年7月19日16时17分的数据
+ 2018-07-19 16:17:53 即查询2018年7月19日16时17分53秒的数据
+ 2018-07-19 16:17:53.350 即查询2018年7月19日16时17分53秒350毫秒的数据
+ */
+- (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
+                              dateType:(njf_dataTimeType)dateType
+                              dateTime:(NSString *_Nonnull)dateTime;
 @end
 
 NS_ASSUME_NONNULL_END

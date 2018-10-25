@@ -66,4 +66,26 @@
     }];
     return  result;
 }
+
+- (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
+                              dateType:(njf_dataTimeType)dateType
+                              dateTime:(NSString *_Nonnull)dateTime{
+    if (name == nil) {
+        name = NSStringFromClass([self class]);
+    }
+    NSMutableString* like = [NSMutableString string];
+    [like appendFormat:@"'%@",dateTime];
+    [like appendString:@"%'"];
+    NSString* where;
+    if (dateType == njf_createTime) {
+        where = [NSString stringWithFormat:@"where %@ like %@",njf_sqlKey(njf_createTimeKey),like];
+    }else{
+        where = [NSString stringWithFormat:@"where %@ like %@",njf_sqlKey(njf_createTimeKey),like];
+    }
+    __block NSArray *result;
+    [[NJF_DB shareManager] njf_querryWithName:name conditions:where complete:^(NSArray * _Nullable array) {
+        result = [NJF_DBTool tansformDataFromSqlDataWithTableName:name class:[self class] array:array];
+    }];
+    return  result;
+}
 @end
