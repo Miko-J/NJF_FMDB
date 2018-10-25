@@ -150,4 +150,13 @@
 - (void)njf_deleteWithName:(NSString *_Nonnull)name
             conditions:(NSString *_Nullable)conditions
               complete:(njf_complete_B)complete;
+
+/**
+ 直接执行sql语句.
+ @tablename 要操作的表名.
+ @cla 要操作的类.
+ */
+- (id _Nullable)njf_executeSql:(NSString* const _Nonnull)sql
+                     tablename:(NSString* _Nonnull)tablename
+                         class:(__unsafe_unretained _Nonnull Class)cla;
 @end

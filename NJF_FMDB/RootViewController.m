@@ -45,8 +45,12 @@
 //    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
     //按时间查询
 //    NSArray *arr = [NJF_People njf_findWithName:@"xiaoniu" dateType:njf_createTime dateTime:@"2018-10-25 10:25"];
-    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
-    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
+//    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
+//    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
+    //直接用sqlite语句操作
+//    NSArray* arr = njf_executeSql(@"select * from xiaoniu", @"xiaoniu", [NJF_People class]);//查询时,后面两个参数必须要传入.
+//    njf_executeSql(@"update yy set NJF_name='小花'", nil, nil);//更新或删除等操作时,后两个参数不必传入.
+    
     NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
     [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSLog(@"查询到的数组数据为%@",obj);

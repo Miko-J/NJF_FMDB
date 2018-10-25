@@ -1116,4 +1116,43 @@ static NJF_DB *njfDB = nil;
     }
     dispatch_semaphore_signal(self.semaphore);
 }
+
+- (id _Nullable)njf_executeSql:(NSString* const _Nonnull)sql
+                     tablename:(NSString* _Nonnull)tablename
+                         class:(__unsafe_unretained _Nonnull Class)cla{
+    NSAssert(sql,@"sql语句不能为空!");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    __block id result;
+    [self executeDB:^(FMDatabase * _Nonnull db){
+        if([[sql lowercaseString] hasPrefix:@"select"]){
+            // 1.查询数据
+            FMResultSet *rs = [db executeQuery:sql];
+            if (rs == nil) {
+                NSLog(@"查询错误,数据不存在,请存储后再读取!");
+                result = nil;
+            }else{
+                result = [NSMutableArray array];
+            }
+            result = [NSMutableArray array];
+            // 2.遍历结果集
+            while (rs.next) {
+                NSMutableDictionary* dictM = [[NSMutableDictionary alloc] init];
+                for (int i=0;i<[[[rs columnNameToIndexMap] allKeys] count];i++) {
+                    dictM[[rs columnNameForIndex:i]] = [rs objectForColumnIndex:i];
+                }
+                [result addObject:dictM];
+            }
+            //查询完后要关闭rs，不然会报@"Warning: there is at least one open result set around after performing
+            [rs close];
+            //转换结果
+            result = [NJF_DBTool tansformDataFromSqlDataWithTableName:tablename class:cla array:result];
+        }else{
+            result = @([db executeUpdate:sql]);
+        }
+        NSLog(@"%@",sql);
+    }];
+    dispatch_semaphore_signal(self.semaphore);
+    return result;
+}
+
 @end
