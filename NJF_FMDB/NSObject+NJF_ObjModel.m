@@ -54,4 +54,16 @@
     [[NJF_DB shareManager] njf_closeDB];
     return result;
 }
+
+- (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
+                                 where:(NSString *_Nullable)where{
+    if (name == nil) {
+        name = NSStringFromClass([self class]);
+    }
+    __block NSArray *result;
+    [[NJF_DB shareManager] njf_querryWithName:name conditions:where complete:^(NSArray * _Nullable array) {
+        result = array;
+    }];
+    return  result;
+}
 @end

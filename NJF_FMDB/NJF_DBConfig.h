@@ -38,6 +38,11 @@ extern BOOL njf_deleteSqlite(NSString *_Nonnull sqliteName);
  */
 extern NSString *_Nonnull njf_sqlKey(NSString *_Nonnull key);
 
+/**
+ 转换OC对象成数据库数据.
+ */
+extern id _Nonnull njf_sqlValue(id _Nonnull value);
+
 typedef NS_ENUM(NSInteger,njf_changeState){//数据改变状态
     njf_insert,//插入
     njf_update,//更新

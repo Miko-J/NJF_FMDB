@@ -31,11 +31,19 @@
 //    njf_setSqliteName(@"xiaomingFMDB");
     //删除数据库
 //    njf_deleteSqlite(@"xiaomingFMDB");
-        NJF_People *people = [[NJF_People alloc] init];
-        people.name = @"小明";
-        people.age = @(25);
-        people.height = 178.86;
-        [people njf_saveObjWithName:@"xiaoniu" obj:people];
+      [self testObj];
+}
+
+- (void)testObj{
+//     NJF_People *people = [[NJF_People alloc] init];
+//     people.name = @"小花";
+//     people.age = @(23);
+//     people.height = 168.23;
+//     [people njf_saveObjWithName:@"xiaoniu" obj:people];
+        //条件查询
+    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
+    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
+    NSLog(@"查询到的数组数据为%@",arr);
 }
 
 - (void)testDict{

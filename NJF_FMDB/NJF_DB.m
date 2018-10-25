@@ -1094,4 +1094,15 @@ static NJF_DB *njfDB = nil;
     }
     return createKeys;
 }
+
+- (void)njf_querryWithName:(NSString *const _Nonnull)name
+                     conditions:(NSString *_Nullable)conditions
+                  complete:(njf_complete_A)complete{
+    NSAssert(name, @"表名为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self queryQueueWithTableName:name conditions:conditions complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
 @end

@@ -133,4 +133,14 @@
 - (void)njf_saveObjWithName:(NSString *const _Nonnull)name
                     obj:(id _Nonnull)obj
                    complete:(njf_complete_B)complete;
+
+/**
+ 直接传入条件sql语句查询.
+ @name 表名称.
+ @conditions 条件语句.例如:@"where NJF_name = '标哥' or NJF_name = '小马哥' and NJF_age = 26 order by NJF_age desc limit 6" 即查询BG_name等于标哥或小马哥和NJF_age等于26的数据通过NJF_age降序输出,只查询前面6条.
+ 更多条件语法,请查询sql的基本使用语句.
+ */
+- (void)njf_querryWithName:(NSString *const _Nonnull)name
+                     conditions:(NSString *_Nullable)conditions
+                  complete:(njf_complete_A)complete;
 @end

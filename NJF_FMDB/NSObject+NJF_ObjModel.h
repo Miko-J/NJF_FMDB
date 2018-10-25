@@ -58,6 +58,21 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (BOOL)njf_saveObjWithName:(NSString *const _Nonnull)name
                     obj:(id _Nonnull)obj;
+
+/**
+ 支持keyPath.
+ @name 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @where 条件参数，可以为nil,nil时查询所有数据.
+ where使用规则请看demo或如下事例:
+ 1.查询name等于爸爸和age等于45,或者name等于马哥的数据.  此接口是为了方便开发者自由扩展更深层次的查询条件逻辑.
+ where = [NSString stringWithFormat:@"where %@=%@ and %@=%@ or %@=%@",bg_sqlKey(@"age"),bg_sqlValue(@(45)),bg_sqlKey(@"name"),bg_sqlValue(@"爸爸"),bg_sqlKey(@"name"),bg_sqlValue(@"马哥")];
+ 2.查询user.student.human.body等于小芳 和 user1.name中包含fuck这个字符串的数据.
+ where = [NSString stringWithFormat:@"where %@",bg_keyPathValues(@[@"user.student.human.body",bg_equal,@"小芳",@"user1.name",bg_contains,@"fuck"])];
+ 3.查询user.student.human.body等于小芳,user1.name中包含fuck这个字符串 和 name等于爸爸的数据.
+ where = [NSString stringWithFormat:@"where %@ and %@=%@",bg_keyPathValues(@[@"user.student.human.body",bg_equal,@"小芳",@"user1.name",bg_contains,@"fuck"]),bg_sqlKey(@"name"),bg_sqlValue(@"爸爸")];
+ */
+- (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
+                                 where:(NSString *_Nullable)where;
 @end
 
 NS_ASSUME_NONNULL_END

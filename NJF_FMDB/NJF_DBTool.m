@@ -64,6 +64,25 @@ NSString *njf_sqlKey(NSString* key){
 }
 
 /**
+ 转换OC对象成数据库数据.
+ */
+id njf_sqlValue(id value){
+    if([value isKindOfClass:[NSNumber class]]) {
+        return value;
+    }else if([value isKindOfClass:[NSString class]]){
+        return [NSString stringWithFormat:@"'%@'",value];
+    }else{
+        NSString* type = [NSString stringWithFormat:@"@\"%@\"",NSStringFromClass([value class])];
+        value = [NJF_DBTool getSqlValue:value type:type encode:YES];
+        if ([value isKindOfClass:[NSString class]]) {
+            return [NSString stringWithFormat:@"'%@'",value];
+        }else{
+            return value;
+        }
+    }
+}
+
+/**
  判断是不是 "唯一约束" 字段.
  */
 + (BOOL)isUniqueKey:(NSString* _Nonnull)uniqueKey
