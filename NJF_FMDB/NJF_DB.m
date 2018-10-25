@@ -154,7 +154,6 @@ static NJF_DB *njfDB = nil;
         NSMutableArray* tempUniqueKeys = [NSMutableArray arrayWithArray:uniqueKeys];
         for (int i = 0; i < keys.count; i ++) {
             NSString *key = [keys[i] componentsSeparatedByString:@"*"][0];
-            
             if(tempUniqueKeys.count && [tempUniqueKeys containsObject:key]){
                 for(NSString* uniqueKey in tempUniqueKeys){
                     if([NJF_DBTool isUniqueKey:uniqueKey with:keys[i]]){
@@ -183,6 +182,7 @@ static NJF_DB *njfDB = nil;
                     }];
                     [sql appendString:@")"];
                 }
+                [sql appendString:@")"];
             }else{
                 [sql appendString:@","];
             }
@@ -190,6 +190,7 @@ static NJF_DB *njfDB = nil;
         if(uniqueKeys.count){
             NSAssert(!uniqueKeyFlag,@"没有找到设置的'唯一约束',请检查模型类.m文件的bg_uniqueKeys函数返回值是否正确!");
         }
+        NSLog(@"创建的表语句为%@",sql);
         //创建表
         result = [db executeUpdate:sql];
     }];
@@ -744,6 +745,7 @@ static NJF_DB *njfDB = nil;
     dispatch_semaphore_signal(self.semaphore);
 }
 
+//插入数据
 - (void)insertWithName:(NSString *const _Nonnull)name
                    Obj:(id)obj
             ignoreKeys:(NSArray *_Nonnull)ignoreKeys
@@ -751,7 +753,8 @@ static NJF_DB *njfDB = nil;
     //获取要写入的字典数组数据
     NSDictionary *dict = [self getDictWithObject:obj ignoredKeys:ignoreKeys filtModelInfoType:njf_ModelInfoInsert];
     //自动判断是否有字段改变,自动刷新数据库.
-    
+    [self ifIvarChangeWithName:name object:obj ignoredKeys:ignoreKeys];
+    [self insertIntoWithTableName:name dict:dict complete:complete];
 }
 
 /**
@@ -842,48 +845,110 @@ static NJF_DB *njfDB = nil;
     }
 }
 
-- (void)refreshQueueTable:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla keys:(NSArray* const _Nonnull)keys keyDict:(NSDictionary* const _Nonnull)keyDict complete:(bg_complete_I)complete{
-    NSAssert(tablename,@"表名不能为空!");
-    NSAssert(keyDict,@"变量名影射集合不能为空!");
-    [self isExistWithTableName:tablename complete:^(BOOL isSuccess){
+-(void)refreshQueueTable:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla keys:(NSArray<NSString*>* const _Nonnull)keys complete:(njf_complete_I)complete{
+    NSAssert(name,@"表名不能为空!");
+    NSAssert(keys,@"字段数组不能为空!");
+    [self isExistWithTableName:name complete:^(BOOL isSuccess){
         if (!isSuccess){
             NSLog(@"没有数据存在,数据库更新失败!");
-            bg_completeBlock(bg_error);
+            if (complete) complete(njf_error);
             return;
         }
     }];
-    //事务操作.
     NSString* BGTempTable = @"BGTempTable";
+    //事务操作.
     __block int recordFailCount = 0;
     [self executeTransation:^BOOL{
-        [self copyA:tablename toB:BGTempTable keyDict:keyDict complete:^(bg_dealState result) {
-            if(result == bg_complete){
+        [self copyA:name toB:BGTempTable class:cla keys:keys complete:^(njf_dealState result) {
+            if(result == njf_complete){
                 recordFailCount++;
             }
         }];
-        [self dropTable:tablename complete:^(BOOL isSuccess) {
+        [self dropTable:name complete:^(BOOL isSuccess) {
             if(isSuccess)recordFailCount++;
         }];
-        [self copyA:BGTempTable toB:tablename class:cla keys:keys complete:^(bg_dealState result) {
-            if(result == bg_complete){
+        [self copyA:BGTempTable toB:name class:cla keys:keys complete:^(njf_dealState result) {
+            if(result == njf_complete){
                 recordFailCount++;
             }
         }];
         [self dropTable:BGTempTable complete:^(BOOL isSuccess) {
             if(isSuccess)recordFailCount++;
         }];
-        if (recordFailCount != 4) {
-            bg_debug(@"发生错误，更新数据库失败!");
+        if(recordFailCount != 4){
+            NSLog(@"发生错误，更新数据库失败!");
         }
         return recordFailCount==4;
     }];
     //回调结果.
-    if(recordFailCount==0){
-        bg_completeBlock(bg_error);
+    if (recordFailCount==0) {
+        if (complete) complete(njf_error);
     }else if (recordFailCount>0&&recordFailCount<4){
-        bg_completeBlock(bg_incomplete);
+        if (complete) complete(njf_incomplete);
     }else{
-        bg_completeBlock(bg_complete);
+        if (complete) complete(njf_complete);
+    }
+}
+
+-(void)copyA:(NSString* _Nonnull)A toB:(NSString* _Nonnull)B class:(__unsafe_unretained _Nonnull Class)cla keys:(NSArray<NSString*>* const _Nonnull)keys complete:(njf_complete_I)complete{
+    //获取"唯一约束"字段名
+    NSArray* uniqueKeys = [NJF_DBTool executeSelector:njf_uniqueKeysSelector forClass:cla];
+    //获取“联合主键”字段名
+    NSArray* unionPrimaryKeys = [NJF_DBTool executeSelector:njf_unionPrimaryKeysSelector forClass:cla];
+    //建立一张临时表
+    __block BOOL createFlag;
+    [self creatTableWithTableName:B keys:keys unionPrimaryKeys:unionPrimaryKeys uniqueKeys:uniqueKeys complete:^(BOOL isSuccess) {
+        createFlag = isSuccess;
+    }];
+    if (!createFlag){
+        NSLog(@"数据库更新失败!");
+        if (complete) complete(njf_error);
+        return;
+    }
+    __block njf_dealState refreshstate = njf_error;
+    __block BOOL recordError = NO;
+    __block BOOL recordSuccess = NO;
+    __weak typeof(self) weakSelf = self;
+    NSInteger count = [self countQueueForTable:A];
+    for(NSInteger i=0;i<count;i += MaxQueryPageNum){
+        @autoreleasepool{//由于查询出来的数据量可能巨大,所以加入自动释放池.
+            NSString* param = [NSString stringWithFormat:@"limit %@,%@",@(i),@(MaxQueryPageNum)];
+            [self queryQueueWithTableName:A conditions:param complete:^(NSArray * _Nullable array) {
+                for(NSDictionary* oldDict in array){
+                    NSMutableDictionary* newDict = [NSMutableDictionary dictionary];
+                    for(NSString* keyAndType in keys){
+                        NSString* key = [keyAndType componentsSeparatedByString:@"*"][0];
+                        //字段名前加上 @"BG_"
+                        key = [NSString stringWithFormat:@"%@%@",NJF,key];
+                        if (oldDict[key]){
+                            newDict[key] = oldDict[key];
+                        }
+                    }
+                    //将旧表的数据插入到新表
+                    [weakSelf insertIntoWithTableName:B dict:newDict complete:^(BOOL isSuccess) {
+                        if (isSuccess){
+                            if (!recordSuccess) {
+                                recordSuccess = YES;
+                            }
+                        }else{
+                            if (!recordError) {
+                                recordError = YES;
+                            }
+                        }
+                    }];
+                }
+            }];
+        }
+    }
+    if (complete){
+        if (recordError && recordSuccess) {
+            refreshstate = njf_incomplete;
+        }else if(recordError && !recordSuccess){
+            refreshstate = njf_error;
+        }else if (recordSuccess && !recordError){
+            refreshstate = njf_complete;
+        }else;
+        complete(refreshstate);
     }
 }
 
@@ -994,7 +1059,7 @@ static NJF_DB *njfDB = nil;
     __block BOOL result;
     [self isExistWithTableName:name complete:^(BOOL isSuccess) {
         if (!isSuccess){//如果不存在就新建
-            NSArray* createKeys = [self njf_filtCreateKeys:[NJF_DBTool getClassIvarList:obj Object:obj onlyKey:NO] ignoredkeys:ignoreKeys];
+            NSArray* createKeys = [self njf_filtCreateKeys:[NJF_DBTool getClassIvarList:[obj class] Object:obj onlyKey:NO] ignoredkeys:ignoreKeys];
             [self creatTableWithTableName:name keys:createKeys unionPrimaryKeys:unionPrimaryKeys uniqueKeys:uniqueKeys complete:^(BOOL isSuccess) {
                 result = isSuccess;
             }];

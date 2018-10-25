@@ -14,9 +14,11 @@ static NSString *NJF = @"NJF_";
 static NSString *njf_createTimeKey = @"njf_createTime";
 static NSString *njf_updateTimeKey = @"njf_updateTime";
 static NSString *njf_tableNameKey = @"njf_tableName";
+static NSInteger MaxQueryPageNum = 50;
 
 #define njf_complete_B void(^_Nullable)(BOOL isSuccess)
 #define njf_complete_A void(^_Nullable)(NSArray *_Nullable array)
+#define njf_complete_I void(^_Nullable)(njf_dealState result)
 
 #define njf_ignoreKeysSelector NSSelectorFromString(@"njf_ignoreKeys")
 #define njf_uniqueKeysSelector NSSelectorFromString(@"njf_uniqueKeys")
@@ -48,5 +50,11 @@ typedef NS_ENUM(NSInteger,njf_getModelInfoType){//过滤数据类型
     njf_ModelInfoSingleUpdate,//单条更新过滤
     njf_ModelInfoArrayUpdate,//批量更新过滤
     njf_ModelInfoNone//无过滤
+};
+
+typedef NS_ENUM(NSInteger,njf_dealState){//处理状态
+    njf_error = -1,//处理失败
+    njf_incomplete = 0,//处理不完整
+    njf_complete = 1//处理完整
 };
 #endif /* NJF_DBConfig_h */

@@ -11,6 +11,7 @@
 #import "NSArray+NJF_ArrModel.h"
 #import "NSDictionary+NJF_DicModel.h"
 #import "NJF_DBConfig.h"
+#import "NSObject+NJF_ObjModel.h"
 
 @interface RootViewController ()
 - (IBAction)creatDB:(id)sender;
@@ -30,8 +31,11 @@
 //    njf_setSqliteName(@"xiaomingFMDB");
     //删除数据库
 //    njf_deleteSqlite(@"xiaomingFMDB");
-    
-    
+        NJF_People *people = [[NJF_People alloc] init];
+        people.name = @"小明";
+        people.age = @(25);
+        people.height = 178.86;
+        [people njf_saveObjWithName:@"xiaoniu" obj:people];
 }
 
 - (void)testDict{
