@@ -89,6 +89,20 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray *_Nullable)njf_findWithName:(NSString *_Nullable)name
                               dateType:(njf_dataTimeType)dateType
                               dateTime:(NSString *_Nonnull)dateTime;
+
+/**
+ @name 当此参数为nil时,查询以此类名为表名的数据，非nil时，删除以此参数为表名的数据.
+ @where 条件参数,可以为nil，nil时删除所有以tablename为表名的数据.
+ 支持keyPath.
+ where使用规则请看demo或如下事例:
+ 1.删除People类中name等于"美国队长"的数据.
+ where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"美国队长")];
+ 2.删除People类中user.student.human.body等于"小芳"的数据.
+ where = [NSString stringWithFormat:@"where %@",bg_keyPathValues(@[@"user.student.human.body",njf_equal,@"小芳"])];
+ 3.删除People类中name等于"美国队长" 和 user.student.human.body等于"小芳"的数据.
+ where = [NSString stringWithFormat:@"where %@=%@ and %@",njf_sqlKey(@"name"),njf_sqlValue(@"美国队长"),njf_keyPathValues(@[@"user.student.human.body",njf_equal,@"小芳"])];
+  */
+- (BOOL)njf_deleteWithName:(NSString *_Nullable)name where:(NSString *_Nonnull)where;
 @end
 
 NS_ASSUME_NONNULL_END

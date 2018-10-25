@@ -445,7 +445,6 @@ id njf_sqlValue(id value){
 //json字符串转NSDictionary
 + (NSDictionary *)dictionaryFromJsonString:(NSString*)jsonString{
     if(!jsonString || [jsonString isKindOfClass:[NSNull class]])return nil;
-    
     if([jsonString containsString:NJFModel] || [jsonString containsString:NJFData]){
         NSMutableDictionary* dictM = [NSMutableDictionary dictionary];
         NSDictionary* dictSrc = [self jsonWtihString:jsonString];

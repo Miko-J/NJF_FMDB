@@ -1105,4 +1105,15 @@ static NJF_DB *njfDB = nil;
     }
     dispatch_semaphore_signal(self.semaphore);
 }
+
+- (void)njf_deleteWithName:(NSString *_Nonnull)name
+            conditions:(NSString *_Nullable)conditions
+              complete:(njf_complete_B)complete{
+    NSAssert(name, @"表名为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self deleteQueueWithTableName:name conditions:conditions complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
 @end

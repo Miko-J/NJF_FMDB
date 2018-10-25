@@ -63,6 +63,7 @@ NS_ASSUME_NONNULL_BEGIN
  @array 传入要转换的数组数据.
  */
 + (NSArray *_Nonnull)tansformDataFromSqlDataWithTableName:(NSString *_Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla array:(NSArray* _Nonnull)array;
+
 @end
 
 NS_ASSUME_NONNULL_END

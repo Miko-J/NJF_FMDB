@@ -64,6 +64,7 @@
     [[NJF_DB shareManager] njf_querryWithName:name conditions:where complete:^(NSArray * _Nullable array) {
         result = array;
     }];
+    [[NJF_DB shareManager] njf_closeDB];
     return  result;
 }
 
@@ -86,6 +87,19 @@
     [[NJF_DB shareManager] njf_querryWithName:name conditions:where complete:^(NSArray * _Nullable array) {
         result = [NJF_DBTool tansformDataFromSqlDataWithTableName:name class:[self class] array:array];
     }];
+    [[NJF_DB shareManager] njf_closeDB];
+    return  result;
+}
+
+- (BOOL)njf_deleteWithName:(NSString *_Nullable)name where:(NSString *_Nonnull)where{
+    if (name == nil) {
+        name = NSStringFromClass([self class]);
+    }
+    __block BOOL result;
+    [[NJF_DB shareManager] njf_deleteWithName:name conditions:where complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] njf_closeDB];
     return  result;
 }
 @end

@@ -143,4 +143,11 @@
 - (void)njf_querryWithName:(NSString *const _Nonnull)name
                      conditions:(NSString *_Nullable)conditions
                   complete:(njf_complete_A)complete;
+
+/**
+ 直接传入条件sql语句删除.
+ */
+- (void)njf_deleteWithName:(NSString *_Nonnull)name
+            conditions:(NSString *_Nullable)conditions
+              complete:(njf_complete_B)complete;
 @end

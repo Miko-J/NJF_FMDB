@@ -44,11 +44,13 @@
 //    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
 //    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
     //按时间查询
-    NSArray *arr = [NJF_People njf_findWithName:@"xiaoniu" dateType:njf_createTime dateTime:@"2018-10-25 10:25"];
+//    NSArray *arr = [NJF_People njf_findWithName:@"xiaoniu" dateType:njf_createTime dateTime:@"2018-10-25 10:25"];
+    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
+    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
+    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
     [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSLog(@"查询到的数组数据为%@",obj);
     }];
-    
 }
 
 - (void)testDict{
