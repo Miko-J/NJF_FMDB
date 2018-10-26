@@ -151,6 +151,28 @@
             conditions:(NSString *_Nullable)conditions
               complete:(njf_complete_B)complete;
 
+
+/**
+ 批量插入或更新
+ @param name name
+ @param arr 批量插入更新的数组
+ param obj 保存的类的对象
+ @param complete complete
+ */
+- (void)njf_saveOrUpdateWithName:(NSString *_Nonnull)name
+                             arr:(NSArray *_Nonnull)arr
+                      ignoreKeys:(NSArray *_Nullable)ignoreKeys
+                        complete:(njf_complete_B)complete;
+
+/**
+ 直接传入条件sql语句更新.
+ */
+- (void)njf_updateWithName:(NSString *_Nonnull)name
+                       obj:(id _Nonnull)obj
+                 valueDict:(NSDictionary *_Nullable)valueDict
+                conditions:(NSString *_Nonnull)conditions
+                  complete:(njf_complete_B)complete;
+
 /**
  直接执行sql语句.
  @tablename 要操作的表名.

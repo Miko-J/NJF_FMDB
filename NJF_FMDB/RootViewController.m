@@ -49,8 +49,17 @@
 //    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
     //直接用sqlite语句操作
 //    NSArray* arr = njf_executeSql(@"select * from xiaoniu", @"xiaoniu", [NJF_People class]);//查询时,后面两个参数必须要传入.
-//    njf_executeSql(@"update yy set NJF_name='小花'", nil, nil);//更新或删除等操作时,后两个参数不必传入.
-    
+//    njf_executeSql(@"update xiaoniu set NJF_name='小花'", nil, nil);//更新或删除等操作时,后两个参数不必传入.
+    //数组的批量保存和更新----类操作
+//     NJF_People *people = [[NJF_People alloc] init];
+//     people.njf_id = @2;
+//     people.name = @"xiaoshuai";
+//     people.age = @(28);
+//     people.height = 173.18;
+//    [NJF_People njf_saveOrUpdateWithName:@"xiaoniu" array:@[people]];
+    //sql语句更新
+    NSString* where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"xiaomeng"),njf_sqlKey(@"name"),njf_sqlValue(@"xiaoshuai")];
+    [NJF_People njf_updateWithName:@"xiaoniu" where:where];
     NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
     [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSLog(@"查询到的数组数据为%@",obj);

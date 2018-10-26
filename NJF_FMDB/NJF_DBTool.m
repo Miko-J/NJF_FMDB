@@ -703,14 +703,4 @@ id njf_sqlValue(id value){
     }
     return arrM;
 }
-
-id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla){
-    if (tablename == nil) {
-        tablename = NSStringFromClass(cla);
-    }
-    id result = [[NJF_DB shareManager] njf_executeSql:sql tablename:tablename class:cla];
-    //关闭数据库
-    [[NJF_DB shareManager] njf_closeDB];
-    return result;
-}
 @end

@@ -60,6 +60,26 @@ NS_ASSUME_NONNULL_BEGIN
                     obj:(id _Nonnull)obj;
 
 /**
+ 同步 存储或更新 数组元素.
+ @array 存放对象的数组.(数组中存放的是同一种类型的数据)
+ 当"唯一约束"或"主键"存在时，此接口会更新旧数据,没有则存储新数据.
+ 提示：“唯一约束”优先级高于"主键".
+ */
+- (BOOL)njf_saveOrUpdateWithName:(NSString *const _Nonnull)name
+                           array:(NSArray *_Nonnull)array;
+
+/**
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，更新以此参数为表名的数据.
+ @where 条件参数,不能为nil.
+ 不支持keyPath.
+ where使用规则请看demo或如下事例:
+ 1.将People类中name等于"马云爸爸"的数据的name更新为"马化腾":
+ where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"马化腾"),njf_sqlKey(@"name"),njf_sqlValue(@"马云爸爸")];
+ */
+- (BOOL)njf_updateWithName:(NSString *_Nullable)name
+                     where:(NSString *_Nonnull)where;
+
+/**
  支持keyPath.
  @name 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
  @where 条件参数，可以为nil,nil时查询所有数据.
@@ -102,7 +122,17 @@ NS_ASSUME_NONNULL_BEGIN
  3.删除People类中name等于"美国队长" 和 user.student.human.body等于"小芳"的数据.
  where = [NSString stringWithFormat:@"where %@=%@ and %@",njf_sqlKey(@"name"),njf_sqlValue(@"美国队长"),njf_keyPathValues(@[@"user.student.human.body",njf_equal,@"小芳"])];
   */
-- (BOOL)njf_deleteWithName:(NSString *_Nullable)name where:(NSString *_Nonnull)where;
+- (BOOL)njf_deleteWithName:(NSString *_Nullable)name
+                     where:(NSString *_Nonnull)where;
+
+/**
+ 直接执行sql语句;
+ @tablename nil时以cla类名为表名.
+ @cla 要操作的类,nil时返回的结果是字典.
+ 提示：字段名要增加BG_前缀
+ */
+extern id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla);
+
 @end
 
 NS_ASSUME_NONNULL_END

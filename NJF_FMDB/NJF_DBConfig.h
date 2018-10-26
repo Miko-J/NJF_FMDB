@@ -43,14 +43,6 @@ extern NSString *_Nonnull njf_sqlKey(NSString *_Nonnull key);
  */
 extern id _Nonnull njf_sqlValue(id _Nonnull value);
 
-/**
- 直接执行sql语句;
- @tablename nil时以cla类名为表名.
- @cla 要操作的类,nil时返回的结果是字典.
- 提示：字段名要增加BG_前缀
- */
-extern id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla);
-
 typedef NS_ENUM(NSInteger,njf_changeState){//数据改变状态
     njf_insert,//插入
     njf_update,//更新

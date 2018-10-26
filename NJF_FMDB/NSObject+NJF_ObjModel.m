@@ -102,4 +102,41 @@
     [[NJF_DB shareManager] njf_closeDB];
     return  result;
 }
+
+- (BOOL)njf_updateWithName:(NSString *_Nullable)name
+                     where:(NSString *_Nonnull)where{
+    if (name == nil) {
+        name = NSStringFromClass([self class]);
+    }
+    __block BOOL result;
+    id obj = [[self class] new];
+    [[NJF_DB shareManager] njf_updateWithName:name obj:obj valueDict:nil conditions:where complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] njf_closeDB];
+    return result;
+}
+
+- (BOOL)njf_saveOrUpdateWithName:(NSString *const _Nonnull)name
+                           array:(NSArray *_Nonnull)array{
+    __block BOOL result;
+    //获取ignorearr
+    NSArray *ignoreKeys = [NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[self class]];
+    [[NJF_DB shareManager] njf_saveOrUpdateWithName:name arr:array ignoreKeys:ignoreKeys complete:^(BOOL isSuccess) {
+        result = isSuccess;
+    }];
+    [[NJF_DB shareManager] njf_closeDB];
+    return  result;
+}
+
+id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla){
+    if (tablename == nil) {
+        tablename = NSStringFromClass(cla);
+    }
+    id result = [[NJF_DB shareManager] njf_executeSql:sql tablename:tablename class:cla];
+    //关闭数据库
+    [[NJF_DB shareManager] njf_closeDB];
+    return result;
+}
 @end

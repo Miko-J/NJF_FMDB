@@ -774,7 +774,6 @@ static NJF_DB *njfDB = nil;
     }else{
         [cache setObject:@(YES) forKey:cacheKey];
     }
-    
     @autoreleasepool {
         NSMutableArray* newKeys = [NSMutableArray array];
         NSMutableArray* sqlKeys = [NSMutableArray array];
@@ -1049,7 +1048,7 @@ static NJF_DB *njfDB = nil;
     return modelInfoDictM;
 }
 
-- (BOOL)ifNotExistCreateTableWithName:(NSString *const _Nonnull)name obj:(id _Nonnull)obj{
+- (BOOL)ifNotExistCreateTableWithName:(id)name obj:(id _Nonnull)obj{
     //获取要忽略的字段
     NSArray *ignoreKeys = [NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[obj class]];
     //获取"唯一约束"字段名
@@ -1113,6 +1112,182 @@ static NJF_DB *njfDB = nil;
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     @autoreleasepool {
         [self deleteQueueWithTableName:name conditions:conditions complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+- (void)njf_saveOrUpdateWithName:(NSString *_Nonnull)name
+                             arr:(NSArray *_Nonnull)arr
+                      ignoreKeys:(NSArray *_Nullable)ignoreKeys
+                        complete:(njf_complete_B)complete{
+    NSAssert(name, @"表名为空");
+    NSAssert(arr && arr.count, @"要保存或更新的对象为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        //判断是否建表
+        [self ifNotExistCreateTableWithName:name obj:arr.firstObject];
+        NSArray *ignoredKeys = [NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[arr.firstObject class]];
+        //判断字段是否有改变，自动刷新数据库
+        [self ifIvarChangeWithName:name object:arr.firstObject ignoredKeys:ignoredKeys];
+        //转换模型数据
+        NSArray* dictArray = [self getArray:arr ignoredKeys:ignoredKeys filtModelInfoType:njf_ModelInfoNone];
+        [self njf_saveOrUpdateWithTableName:name class:[arr.firstObject class] DictArray:dictArray complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+/**
+ 批量插入或更新.
+ */
+- (void)njf_saveOrUpdateWithTableName:(NSString* _Nonnull)tablename class:(__unsafe_unretained _Nonnull Class)cla DictArray:(NSArray<NSDictionary*>* _Nonnull)dictArray complete:(njf_complete_B)complete{
+    __block BOOL result;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        [db beginTransaction];
+        __block NSInteger counter = 0;
+        [dictArray enumerateObjectsUsingBlock:^(NSDictionary * _Nonnull dict, NSUInteger idx, BOOL * _Nonnull stop) {
+            @autoreleasepool {
+                NSString* njf_id = njf_sqlKey(njf_primaryKey);
+                //获得"唯一约束"
+                NSArray* uniqueKeys = [NJF_DBTool executeSelector:njf_uniqueKeysSelector forClass:cla];
+                //获得"联合主键"
+                NSArray* unionPrimaryKeys =[NJF_DBTool executeSelector:njf_unionPrimaryKeysSelector forClass:cla];
+                NSMutableDictionary* tempDict = [[NSMutableDictionary alloc] initWithDictionary:dict];
+                NSMutableString* where = [NSMutableString new];
+                BOOL isSave = NO;//是否存储还是更新.
+                if(uniqueKeys.count || unionPrimaryKeys.count){
+                    NSArray* tempKeys;
+                    NSString* orAnd;
+                    
+                    if(unionPrimaryKeys.count){
+                        tempKeys = unionPrimaryKeys;
+                        orAnd = @"and";
+                    }else{
+                        tempKeys = uniqueKeys;
+                        orAnd = @"or";
+                    }
+                    if(tempKeys.count == 1){
+                        NSString* tempkey = njf_sqlKey([tempKeys firstObject]);
+                        id tempkeyVlaue = tempDict[tempkey];
+                        [where appendFormat:@" where %@=%@",tempkey,njf_sqlValue(tempkeyVlaue)];
+                    }else{
+                        [where appendString:@" where"];
+                        [tempKeys enumerateObjectsUsingBlock:^(NSString*  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop){
+                            NSString* tempkey = njf_sqlKey(obj);
+                            id tempkeyVlaue = tempDict[tempkey];
+                            if(idx < (tempKeys.count-1)){
+                                [where appendFormat:@" %@=%@ %@",tempkey,njf_sqlValue(tempkeyVlaue),orAnd];
+                            }else{
+                                [where appendFormat:@" %@=%@",tempkey,njf_sqlValue(tempkeyVlaue)];
+                            }
+                        }];
+                    }
+                    NSString* dataCountSql = [NSString stringWithFormat:@"select count(*) from %@%@",tablename,where];
+                    __block NSInteger dataCount = 0;
+                    [db executeStatements:dataCountSql withResultBlock:^int(NSDictionary *resultsDictionary) {
+                        dataCount = [[resultsDictionary.allValues lastObject] integerValue];
+                        return 0;
+                    }];
+                    NSLog(@"%@",dataCountSql);
+                    if(dataCount){
+                        //更新操作
+                        [tempKeys enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                            [tempDict removeObjectForKey:njf_sqlKey(obj)];
+                        }];
+                    }else{
+                        //插入操作
+                        isSave = YES;
+                    }
+                }else{
+                    if([tempDict.allKeys containsObject:njf_id]){
+                        //更新操作
+                        id primaryKeyVlaue = tempDict[njf_id];
+                        [where appendFormat:@" where %@=%@",njf_id,njf_sqlValue(primaryKeyVlaue)];
+                    }else{
+                        //插入操作
+                        isSave = YES;
+                    }
+                }
+                NSMutableString* SQL = [[NSMutableString alloc] init];
+                NSMutableArray* arguments = [NSMutableArray array];
+                if(isSave){//存储操作
+                    NSInteger num = [self getKeyMaxForTable:tablename key:njf_id db:db];
+                    [tempDict setValue:@(num+1) forKey:njf_id];
+                    [SQL appendFormat:@"insert into %@(",tablename];
+                    NSArray* keys = tempDict.allKeys;
+                    NSArray* values = tempDict.allValues;
+                    for(int i=0;i<keys.count;i++){
+                        [SQL appendFormat:@"%@",keys[i]];
+                        if(i == (keys.count-1)){
+                            [SQL appendString:@") "];
+                        }else{
+                            [SQL appendString:@","];
+                        }
+                    }
+                    [SQL appendString:@"values("];
+                    for(int i=0;i<values.count;i++){
+                        [SQL appendString:@"?"];
+                        if(i == (keys.count-1)){
+                            [SQL appendString:@");"];
+                        }else{
+                            [SQL appendString:@","];
+                        }
+                        [arguments addObject:values[i]];
+                    }
+                }else{//更新操作
+                    if([tempDict.allKeys containsObject:njf_id]){
+                        [tempDict removeObjectForKey:njf_id];//移除主键
+                    }
+                    [tempDict removeObjectForKey:njf_sqlKey(njf_createTimeKey)];//移除创建时间
+                    [SQL appendFormat:@"update %@ set ",tablename];
+                    [tempDict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+                        [SQL appendFormat:@"%@=?,",key];
+                        [arguments addObject:obj];
+                    }];
+                    SQL = [NSMutableString stringWithString:[SQL substringToIndex:SQL.length-1]];
+                    if(where.length) {
+                        [SQL appendString:where];
+                    }
+                }
+                NSLog(@"%@",SQL);
+                BOOL flag = [db executeUpdate:SQL withArgumentsInArray:arguments];
+                if(flag){
+                    counter++;
+                }
+            }
+        }];
+        if (dictArray.count == counter){
+            result = YES;
+            [db commit];
+        }else{
+            result = NO;
+            [db rollback];
+        }
+    }];
+    //数据监听执行函数
+    [self doChangeWithName:tablename flag:result state:njf_update];
+    if (complete) complete(result);
+}
+
+- (NSArray *)getArray:(NSArray*)array ignoredKeys:(NSArray* const _Nullable)ignoredKeys filtModelInfoType:(njf_getModelInfoType)filtModelInfoType{
+    NSMutableArray* dictArray = [NSMutableArray array];
+    [array enumerateObjectsUsingBlock:^(id  _Nonnull object, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSDictionary* dict = [self getDictWithObject:object ignoredKeys:ignoredKeys filtModelInfoType:filtModelInfoType];
+        [dictArray addObject:dict];
+    }];
+    return dictArray;
+}
+
+- (void)njf_updateWithName:(NSString *_Nonnull)name
+                       obj:(id _Nonnull)obj
+                 valueDict:(NSDictionary *_Nullable)valueDict
+                conditions:(NSString *_Nonnull)conditions
+                  complete:(njf_complete_B)complete{
+    NSAssert(name,@"表名不能为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        NSArray *ignoredKsys = [NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[obj class]];
+        [self ifIvarChangeWithName:name object:obj ignoredKeys:ignoredKsys];
+        [self updateQueueWithTableName:name valueDict:valueDict conditions:conditions complete:complete];
     }
     dispatch_semaphore_signal(self.semaphore);
 }
