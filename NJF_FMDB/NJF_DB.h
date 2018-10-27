@@ -189,5 +189,13 @@
  @where 条件参数.
  @complete 回调的block.
  */
-- (void)queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete;
+- (void)njf_queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete;
+
+/**
+ 查询该表中有多少条数据
+ @name 表名称.
+ @where 条件数组,形式 @[@"key",@"=",@"value",@"key",@">=",@"value"],为nil时返回全部数据的条数.
+ */
+- (NSInteger)njf_countTableWithName:(NSString *_Nullable)name
+                          where:(NSString *_Nullable)conditions;
 @end

@@ -146,6 +146,16 @@
     return (array&&array.count)?array.firstObject:nil;
 }
 
+- (NSInteger)njf_countTableWithName:(NSString *_Nullable)name
+                          where:(NSString *_Nullable)where{
+    if (name == nil) {
+        name = NSStringFromClass([self class]);
+    }
+    NSInteger count = [[NJF_DB shareManager] njf_countTableWithName:name where:where];
+    [[NJF_DB shareManager] njf_closeDB];
+    return count;
+}
+
 id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla){
     if (tablename == nil) {
         tablename = NSStringFromClass(cla);
@@ -172,7 +182,7 @@ id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename
     desc?[where appendFormat:@"desc"]:[where appendFormat:@"asc"];
     !limit?:[where appendFormat:@" limit %@",@(limit)];
     __block NSArray* results;
-    [[NJF_DB shareManager] queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
+    [[NJF_DB shareManager] njf_queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
         results = array;
     }];
     //关闭数据库
@@ -197,7 +207,7 @@ id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename
     NSAssert((range.location>0)&&(range.length>0),@"range参数错误,location应该大于零,length应该大于零");
     [where appendFormat:@" limit %@,%@",@(range.location-1),@(range.length)];
     __block NSArray* results;
-    [[NJF_DB shareManager] queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
+    [[NJF_DB shareManager] njf_queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
         results = array;
     }];
     //关闭数据库

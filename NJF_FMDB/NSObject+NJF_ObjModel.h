@@ -149,6 +149,33 @@ NS_ASSUME_NONNULL_BEGIN
                             row:(NSInteger)row;
 
 /**
+ 同步查询所有结果.
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @orderBy 要排序的key.
+ @range 查询的范围(从location开始的后面length条，localtion要大于0).
+ @desc YES:降序，NO:升序.
+ */
+- (NSArray *_Nullable)njf_find:(NSString* _Nullable)tablename
+                       range:(NSRange)range orderBy:(NSString* _Nullable)orderBy
+                         desc:(BOOL)desc;
+
+/**
+ 查询该表中有多少条数据.
+ @tablename 当此参数为nil时,查询以此类名为表名的数据条数，非nil时，查询以此参数为表名的数据条数.
+ @where 条件参数,nil时查询所有以tablename为表名的数据条数.
+ 支持keyPath.
+ 使用规则请看demo或如下事例:
+ 1.查询People类中name等于"美国队长"的数据条数.
+ where = [NSString stringWithFormat:@"where %@=%@",bg_sqlKey(@"name"),bg_sqlValue(@"美国队长")];
+ 2.查询People类中user.student.human.body等于"小芳"的数据条数.
+ where = [NSString stringWithFormat:@"where %@",bg_keyPathValues(@[@"user.student.human.body",bg_equal,@"小芳"])];
+ 3.查询People类中name等于"美国队长" 和 user.student.human.body等于"小芳"的数据条数.
+ where = [NSString stringWithFormat:@"where %@=%@ and %@",bg_sqlKey(@"name"),bg_sqlValue(@"美国队长"),bg_keyPathValues(@[@"user.student.human.body",bg_equal,@"小芳"])];
+ */
+- (NSInteger)njf_countTableWithName:(NSString *_Nullable)name
+                          where:(NSString *_Nullable)where;
+
+/**
  直接执行sql语句;
  @tablename nil时以cla类名为表名.
  @cla 要操作的类,nil时返回的结果是字典.

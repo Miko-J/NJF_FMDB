@@ -45,11 +45,20 @@
 //    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:where];
     //按时间查询
 //    NSArray *arr = [NJF_People njf_findWithName:@"xiaoniu" dateType:njf_createTime dateTime:@"2018-10-25 10:25"];
-//    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
-//    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
+    //查询所有元素
+//    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
     //直接用sqlite语句操作
 //    NSArray* arr = njf_executeSql(@"select * from xiaoniu", @"xiaoniu", [NJF_People class]);//查询时,后面两个参数必须要传入.
 //    njf_executeSql(@"update xiaoniu set NJF_name='小花'", nil, nil);//更新或删除等操作时,后两个参数不必传入.
+    //查询第一个元素
+    //    id obj = [NJF_People njf_firstObjWithName:@"xiaoniu"];
+    //查询最后一个元素
+    //    id obj = [NJF_People njf_lastObjWithName:@"xiaoniu"];
+    //查询某一行元素
+    //    id obj = [NJF_People njf_objWithName:@"xiaoniu" row:1];
+    //删除
+    //    NSString* where = [NSString stringWithFormat:@"where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"小明")];
+    //    [NJF_People njf_deleteWithName:@"xiaoniu" where:where];
     //数组的批量保存和更新----类操作
 //     NJF_People *people = [[NJF_People alloc] init];
 //     people.njf_id = @2;
@@ -60,15 +69,17 @@
     //sql语句更新
 //    NSString* where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"xiaomeng"),njf_sqlKey(@"name"),njf_sqlValue(@"xiaoshuai")];
 //    [NJF_People njf_updateWithName:@"xiaoniu" where:where];
-    //查询第一个元素
-//    id obj = [NJF_People njf_firstObjWithName:@"xiaoniu"];
-    //查询最后一个元素
-//    id obj = [NJF_People njf_lastObjWithName:@"xiaoniu"];
-//    id obj = [NJF_People njf_objWithName:@"xiaoniu" row:1];
-    NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
-    [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSLog(@"查询到的数组数据为%@",obj);
-    }];
+    //查询表中有多少条数据
+    NSInteger count = [NJF_People njf_countTableWithName:@"xiaoniu" where:nil];
+    /**
+     当数据量巨大时采用分页范围查询.
+     */
+    for (int i = 0; i < count; i+=20) {
+        NSArray *arr = [NJF_People njf_find:@"xiaoniu" range:NSMakeRange(1, 20) orderBy:nil desc:NO];
+        [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            NSLog(@"查询到的数组数据为%@",obj);
+        }];
+    }
 }
 
 - (void)testDict{

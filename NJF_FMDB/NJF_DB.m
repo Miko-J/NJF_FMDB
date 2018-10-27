@@ -1346,12 +1346,39 @@ static NJF_DB *njfDB = nil;
     }];
 }
 
-- (void)queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete{
+- (void)njf_queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete{
     NSAssert(name, @"表名为空");
     dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
     @autoreleasepool {
         [self queryObjectQueueWithTableName:name class:cla where:where complete:complete];
     }
     dispatch_semaphore_signal(self.semaphore);
+}
+
+- (NSInteger)njf_countTableWithName:(NSString *_Nullable)name
+                          where:(NSString *_Nullable)conditions{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    NSInteger count = 0;
+    @autoreleasepool {
+        count = [self countQueueForTable:name conditions:conditions];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+    return count;
+}
+
+/**
+ 直接传入条件sql语句查询数据条数.
+ */
+- (NSInteger)countQueueForTable:(NSString* _Nonnull)name conditions:(NSString* _Nullable)conditions{
+    NSAssert(name,@"表名不能为空!");
+    __block NSUInteger count=0;
+    [self executeDB:^(FMDatabase * _Nonnull db) {
+        NSString* SQL = conditions?[NSString stringWithFormat:@"select count(*) from %@ %@",name,conditions]:[NSString stringWithFormat:@"select count(*) from %@",name];
+        [db executeStatements:SQL withResultBlock:^int(NSDictionary *resultsDictionary) {
+            count = [[resultsDictionary.allValues lastObject] integerValue];
+            return 0;
+        }];
+    }];
+    return count;
 }
 @end
