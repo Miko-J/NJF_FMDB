@@ -11,6 +11,7 @@
 
 static NSString *njf_primaryKey = @"njf_id";
 static NSString *NJF = @"NJF_";
+static NSString *njf_rowid = @"rowid";
 static NSString *njf_createTimeKey = @"njf_createTime";
 static NSString *njf_updateTimeKey = @"njf_updateTime";
 static NSString *njf_tableNameKey = @"njf_tableName";

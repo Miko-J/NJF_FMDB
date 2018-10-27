@@ -130,6 +130,22 @@
     return  result;
 }
 
+- (id _Nullable)njf_firstObjWithName:(NSString *_Nullable)name{
+    NSArray* array = [self njf_find:name limit:1 orderBy:nil desc:NO];
+    return (array&&array.count)?array.firstObject:nil;
+}
+
+- (id _Nullable)njf_lastObjWithName:(NSString *_Nullable)name{
+    NSArray* array = [self njf_find:name limit:1 orderBy:nil desc:YES];
+    return (array&&array.count)?array.firstObject:nil;
+}
+
+- (id _Nullable)njf_objWithName:(NSString *_Nullable)name
+                            row:(NSInteger)row{
+    NSArray* array = [self njf_find:name range:NSMakeRange(row,1) orderBy:nil desc:NO];
+    return (array&&array.count)?array.firstObject:nil;
+}
+
 id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla){
     if (tablename == nil) {
         tablename = NSStringFromClass(cla);
@@ -138,5 +154,54 @@ id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename
     //关闭数据库
     [[NJF_DB shareManager] njf_closeDB];
     return result;
+}
+
+/**
+ 同步查询所有结果.
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @orderBy 要排序的key.
+ @limit 每次查询限制的条数,0则无限制.
+ @desc YES:降序，NO:升序.
+ */
+- (NSArray *_Nullable)njf_find:(NSString *_Nullable)tablename limit:(NSInteger)limit orderBy:(NSString * _Nullable)orderBy desc:(BOOL)desc{
+    if(tablename == nil) {
+        tablename = NSStringFromClass([self class]);
+    }
+    NSMutableString* where = [NSMutableString string];
+    orderBy?[where appendFormat:@"order by %@%@ ",NJF,orderBy]:[where appendFormat:@"order by %@ ",njf_rowid];
+    desc?[where appendFormat:@"desc"]:[where appendFormat:@"asc"];
+    !limit?:[where appendFormat:@" limit %@",@(limit)];
+    __block NSArray* results;
+    [[NJF_DB shareManager] queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
+        results = array;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] njf_closeDB];
+    return results;
+}
+
+/**
+ 同步查询所有结果.
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @orderBy 要排序的key.
+ @range 查询的范围(从location开始的后面length条，localtion要大于0).
+ @desc YES:降序，NO:升序.
+ */
+- (NSArray *_Nullable)njf_find:(NSString* _Nullable)tablename range:(NSRange)range orderBy:(NSString* _Nullable)orderBy desc:(BOOL)desc{
+    if(tablename == nil) {
+        tablename = NSStringFromClass([self class]);
+    }
+    NSMutableString* where = [NSMutableString string];
+    orderBy?[where appendFormat:@"order by %@%@ ",NJF,orderBy]:[where appendFormat:@"order by %@ ",njf_rowid];
+    desc?[where appendFormat:@"desc"]:[where appendFormat:@"asc"];
+    NSAssert((range.location>0)&&(range.length>0),@"range参数错误,location应该大于零,length应该大于零");
+    [where appendFormat:@" limit %@,%@",@(range.location-1),@(range.length)];
+    __block NSArray* results;
+    [[NJF_DB shareManager] queryObjectWithTableName:tablename class:[self class] where:where complete:^(NSArray * _Nullable array) {
+        results = array;
+    }];
+    //关闭数据库
+    [[NJF_DB shareManager] njf_closeDB];
+    return results;
 }
 @end

@@ -125,6 +125,29 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)njf_deleteWithName:(NSString *_Nullable)name
                      where:(NSString *_Nonnull)where;
 
+
+/**
+ 查询表中的第一个元素
+ @param name 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @return 返回第一个元素
+ */
+- (id _Nullable)njf_firstObjWithName:(NSString *_Nullable)name;
+
+/**
+ 查询表中最后一个元素
+ @param name 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @return 返回最后一个元素
+ */
+- (id _Nullable)njf_lastObjWithName:(NSString *_Nullable)name;
+
+/**
+ 查询某一行数据
+ @tablename 当此参数为nil时,查询以此类名为表名的数据，非nil时，查询以此参数为表名的数据.
+ @row 从第1行开始算起.
+ */
+- (id _Nullable)njf_objWithName:(NSString *_Nullable)name
+                            row:(NSInteger)row;
+
 /**
  直接执行sql语句;
  @tablename nil时以cla类名为表名.

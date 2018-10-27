@@ -58,8 +58,13 @@
 //     people.height = 173.18;
 //    [NJF_People njf_saveOrUpdateWithName:@"xiaoniu" array:@[people]];
     //sql语句更新
-    NSString* where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"xiaomeng"),njf_sqlKey(@"name"),njf_sqlValue(@"xiaoshuai")];
-    [NJF_People njf_updateWithName:@"xiaoniu" where:where];
+//    NSString* where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"xiaomeng"),njf_sqlKey(@"name"),njf_sqlValue(@"xiaoshuai")];
+//    [NJF_People njf_updateWithName:@"xiaoniu" where:where];
+    //查询第一个元素
+//    id obj = [NJF_People njf_firstObjWithName:@"xiaoniu"];
+    //查询最后一个元素
+//    id obj = [NJF_People njf_lastObjWithName:@"xiaoniu"];
+//    id obj = [NJF_People njf_objWithName:@"xiaoniu" row:1];
     NSArray* arr = [NJF_People njf_findWithName:@"xiaoniu" where:nil];
     [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSLog(@"查询到的数组数据为%@",obj);

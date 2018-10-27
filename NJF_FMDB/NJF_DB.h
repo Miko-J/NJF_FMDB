@@ -181,4 +181,13 @@
 - (id _Nullable)njf_executeSql:(NSString* const _Nonnull)sql
                      tablename:(NSString* _Nonnull)tablename
                          class:(__unsafe_unretained _Nonnull Class)cla;
+
+/**
+ 根据条件查询对象.
+ @tablename 要操作的表名称.
+ @cla 代表对应的类.
+ @where 条件参数.
+ @complete 回调的block.
+ */
+- (void)queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete;
 @end

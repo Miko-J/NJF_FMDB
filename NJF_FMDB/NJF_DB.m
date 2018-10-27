@@ -1330,4 +1330,28 @@ static NJF_DB *njfDB = nil;
     return result;
 }
 
+-(void)queryObjectQueueWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete{
+    //检查是否建立了跟对象相对应的数据表
+    __weak typeof(self) weakSelf = self;
+    [self isExistWithTableName:name complete:^(BOOL isExist) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!isExist){//如果不存在就返回空
+            if (complete) complete(nil);
+        }else{
+            [strongSelf queryQueueWithTableName:name conditions:where complete:^(NSArray * _Nullable array) {
+                NSArray* resultArray = [NJF_DBTool tansformDataFromSqlDataWithTableName:name class:cla array:array];
+                if (complete) complete(resultArray);
+            }];
+        }
+    }];
+}
+
+- (void)queryObjectWithTableName:(NSString* _Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla where:(NSString* _Nullable)where complete:(njf_complete_A)complete{
+    NSAssert(name, @"表名为空");
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self queryObjectQueueWithTableName:name class:cla where:where complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
 @end
