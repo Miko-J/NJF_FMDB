@@ -70,16 +70,19 @@
 //    NSString* where = [NSString stringWithFormat:@"set %@=%@ where %@=%@",njf_sqlKey(@"name"),njf_sqlValue(@"xiaomeng"),njf_sqlKey(@"name"),njf_sqlValue(@"xiaoshuai")];
 //    [NJF_People njf_updateWithName:@"xiaoniu" where:where];
     //查询表中有多少条数据
-    NSInteger count = [NJF_People njf_countTableWithName:@"xiaoniu" where:nil];
-    /**
-     当数据量巨大时采用分页范围查询.
-     */
-    for (int i = 0; i < count; i+=20) {
-        NSArray *arr = [NJF_People njf_find:@"xiaoniu" range:NSMakeRange(1, 20) orderBy:nil desc:NO];
-        [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            NSLog(@"查询到的数组数据为%@",obj);
-        }];
-    }
+//    NSInteger count = [NJF_People njf_countTableWithName:@"xiaoniu" where:nil];
+//    /**
+//     当数据量巨大时采用分页范围查询.
+//     */
+//    for (int i = 0; i < count; i+=20) {
+//        NSArray *arr = [NJF_People njf_find:@"xiaoniu" range:NSMakeRange(1, 20) orderBy:nil desc:NO];
+//        [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+//            NSLog(@"查询到的数组数据为%@",obj);
+//        }];
+//    }
+    //获取当前表的版本号
+    NSInteger version = [NJF_People njf_getTableVersionWithName:@"xiaoniu"];
+    NSLog(@"%ld",(long)version);
 }
 
 - (void)testDict{

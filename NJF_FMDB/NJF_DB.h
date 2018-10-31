@@ -198,4 +198,14 @@
  */
 - (NSInteger)njf_countTableWithName:(NSString *_Nullable)name
                           where:(NSString *_Nullable)conditions;
+
+/**
+ 刷新数据库，即将旧数据库的数据复制到新建的数据库,这是为了去掉没用的字段.
+ @name 表名称.
+ @keys 新表的数组字段.
+ */
+- (void)njf_refreshTableWithName:(NSString *_Nullable)name
+                             cla:(__unsafe_unretained _Nonnull Class)cla
+                            keys:(NSArray<NSString *> *const _Nonnull)keys
+                        complete:(njf_complete_I)complete;
 @end

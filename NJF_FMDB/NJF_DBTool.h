@@ -19,6 +19,21 @@ NS_ASSUME_NONNULL_BEGIN
               with:(NSString* _Nonnull)param;
 
 /**
+ 获取当前表的版本号
+ @param key key
+ @return NSInteger
+ */
++ (NSInteger)getTableVersionWithkey:(NSString *_Nonnull)key;
+
+/**
+ 设置当前表的版本号
+ @param key key
+ @param value value
+ */
++ (void)setTableVersionWithKey:(NSString *_Nonnull)key
+                         value:(NSInteger)value;
+
+/**
  判断并获取字段类型.
  */
 + (NSString *)keyType:(NSString *)param;
@@ -63,6 +78,12 @@ NS_ASSUME_NONNULL_BEGIN
  @array 传入要转换的数组数据.
  */
 + (NSArray *_Nonnull)tansformDataFromSqlDataWithTableName:(NSString *_Nonnull)name class:(__unsafe_unretained _Nonnull Class)cla array:(NSArray* _Nonnull)array;
+
+/**
+ 过滤建表的key.
+ */
++ (NSArray *)filtCreateKeys:(NSArray *)createkeys
+                ignoredkeys:(NSArray *)ignoredkeys;
 
 @end
 

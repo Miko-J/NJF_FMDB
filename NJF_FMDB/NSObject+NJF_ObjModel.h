@@ -183,6 +183,21 @@ NS_ASSUME_NONNULL_BEGIN
  */
 extern id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename,__unsafe_unretained _Nullable Class cla);
 
+/**
+ 获取当前表的版本号
+ @return 版本号
+ */
+- (NSInteger)njf_getTableVersionWithName:(NSString *_Nullable)name;
+
+/**
+ 刷新,当类'唯一约束','联合主键','属性类型'发生改变时,调用此接口刷新一下.
+ 同步刷新.
+ @name 当此参数为nil时,操作以此类名为表名的数据表，非nil时，操作以此参数为表名的数据表.
+ @version 版本号,从1开始,依次往后递增.
+ 说明: 本次更新版本号不得 低于或等于 上次的版本号,否则不会更新.
+ */
+- (njf_dealState)njf_updateTableVersionWithName:(NSString *_Nullable)name
+                                        version:(NSInteger)version;
 @end
 
 NS_ASSUME_NONNULL_END

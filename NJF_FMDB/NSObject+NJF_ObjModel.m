@@ -214,4 +214,32 @@ id _Nullable njf_executeSql(NSString* _Nonnull sql,NSString* _Nullable tablename
     [[NJF_DB shareManager] njf_closeDB];
     return results;
 }
+
+- (NSInteger)njf_getTableVersionWithName:(NSString *_Nullable)name{
+    if (!name) {
+        name = NSStringFromClass([self class]);
+    }
+    return [NJF_DBTool getTableVersionWithkey:name];
+}
+
+- (njf_dealState)njf_updateTableVersionWithName:(NSString *_Nullable)name
+                                        version:(NSInteger)version{
+    if (!name) {
+        name = NSStringFromClass([self class]);
+    }
+    NSInteger oldVersion = [NJF_DBTool getTableVersionWithkey:name];
+    if (version > oldVersion) {
+        [NJF_DBTool setTableVersionWithKey:name value:version];//保存version的版本号
+        NSArray *keys = [NJF_DBTool filtCreateKeys:[NJF_DBTool getClassIvarList:[self class] Object:nil onlyKey:NO] ignoredkeys:[NJF_DBTool executeSelector:njf_ignoreKeysSelector forClass:[self class]]];
+        __block njf_dealState state;
+        [[NJF_DB shareManager] njf_refreshTableWithName:name cla:[self class] keys:keys complete:^(njf_dealState result) {
+            state = result;
+        }];
+        //关闭数据库
+        [[NJF_DB shareManager] njf_closeDB];
+        return state;
+    }else{
+        return njf_error;
+    }
+}
 @end

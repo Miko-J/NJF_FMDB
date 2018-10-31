@@ -703,4 +703,43 @@ id njf_sqlValue(id value){
     }
     return arrM;
 }
+
++ (NSArray *)filtCreateKeys:(NSArray *)createkeys
+                ignoredkeys:(NSArray *)ignoredkeys{
+    NSMutableArray* createKeys = [NSMutableArray arrayWithArray:createkeys];
+    NSMutableArray* ignoredKeys = [NSMutableArray arrayWithArray:ignoredkeys];
+    //判断是否有需要忽略的key集合.
+    if (ignoredKeys.count){
+        for(__block int i=0;i<createKeys.count;i++){
+            if(ignoredKeys.count){
+                NSString* createKey = [createKeys[i] componentsSeparatedByString:@"*"][0];
+                [ignoredKeys enumerateObjectsUsingBlock:^(id  _Nonnull ignoreKey, NSUInteger idx, BOOL * _Nonnull stop) {
+                    if([createKey isEqualToString:ignoreKey]){
+                        [createKeys removeObjectAtIndex:i];
+                        [ignoredKeys removeObjectAtIndex:idx];
+                        i--;
+                        *stop = YES;
+                    }
+                }];
+            }else{
+                break;
+            }
+        }
+    }
+    return createKeys;
+}
+
++ (NSInteger)getTableVersionWithkey:(NSString *_Nonnull)key{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults synchronize];
+    return [defaults integerForKey:key];
+}
+
++ (void)setTableVersionWithKey:(NSString *_Nonnull)key
+                         value:(NSInteger)value{
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:value forKey:key];
+    [defaults synchronize];
+}
+
 @end

@@ -1381,4 +1381,17 @@ static NJF_DB *njfDB = nil;
     }];
     return count;
 }
+
+- (void)njf_refreshTableWithName:(NSString *_Nullable)name
+                             cla:(__unsafe_unretained _Nonnull Class)cla
+                            keys:(NSArray<NSString *> *const _Nonnull)keys
+                        complete:(njf_complete_I)complete{
+    dispatch_semaphore_wait(self.semaphore, DISPATCH_TIME_FOREVER);
+    @autoreleasepool {
+        [self refreshQueueTable:name class:cla keys:keys complete:complete];
+    }
+    dispatch_semaphore_signal(self.semaphore);
+}
+
+
 @end
